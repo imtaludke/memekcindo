@@ -3,53 +3,36 @@
 import Layout from '../layouts/BaseLayout.astro';
 import VideoCard from '../components/VideoCard.astro';
 import { slugify } from '../utils/slugify';
-import { nama, url } from '../utils/site.ts';
-import type { VideoData } from '../utils/data.ts';
+import { getAllVideos, type VideoData } from '../utils/data';
+import { nama, desk, url, terbit } from '../utils/site.ts';
 
 export const prerender = true;
 
-// Import allVideos directly from the pre-processed file
-import allVideos from '../data/allVideos.ts';
+const allVideos: VideoData[] = await getAllVideos();
 
-const videosPerPage = 40; // Number of videos per page
+const videosPerPage = 40; // Jumlah video per halaman untuk paginasi global
 
-// Shuffle all videos randomly
-const shuffledVideos = [...allVideos].sort(() => 0.5 - Math.random());
-
-// Calculate total pages
-const totalPages = Math.ceil(shuffledVideos.length / videosPerPage);
-
-// For the index.astro (homepage), the current page is always 1
+// --- Logika Paginasi Global untuk Beranda ---
+// Halaman beranda (index.astro) selalu Page 1
 const currentPage = 1;
 
-// Get videos for the first page (homepage typically shows page 1)
-const startIndex = (currentPage - 1) * videosPerPage; // This will be 0 for currentPage = 1
+// Acak semua video untuk paginasi global
+const shuffledAllVideos = [...allVideos].sort(() => 0.5 - Math.random());
+
+// Hitung total halaman untuk paginasi global
+const totalPages = Math.ceil(shuffledAllVideos.length / videosPerPage);
+
+// Dapatkan video untuk halaman saat ini (halaman 1)
+const startIndex = (currentPage - 1) * videosPerPage; // Ini akan menjadi 0 untuk currentPage = 1
 const endIndex = startIndex + videosPerPage;
-const paginatedVideos = shuffledVideos.slice(startIndex, endIndex);
+const paginatedVideos = shuffledAllVideos.slice(startIndex, endIndex);
 
-const preconnectDomains = new Set<string>();
-paginatedVideos.forEach(video => {
-  try {
-    if (video.embedUrl) {
-      preconnectDomains.add(new URL(video.embedUrl).origin);
-    }
-  } catch (e) {
-    console.error(`Invalid URL for video ID "${video.id}" (homepage):`, e);
-  }
-});
-
-const pageCanonicalUrl = Astro.url.href;
-
-const breadcrumbs = [
-  { name: 'Home', url: `${url}` },
-];
-
-// --- Pagination Logic (New/Enhanced) ---
-const maxPageLinks = 5; // Max number of page links to show (e.g., 1 ... 4 5 6 ... 10)
+// Logika untuk membuat deretan tautan paginasi
+const maxPageLinks = 5; // Jumlah maksimum tautan halaman yang akan ditampilkan (misal: 1 ... 4 5 6 ... 10)
 let startPage = Math.max(1, currentPage - Math.floor(maxPageLinks / 2));
 let endPage = Math.min(totalPages, currentPage + Math.floor(maxPageLinks / 2));
 
-// Adjust start/end if near the beginning or end of pages
+// Penyesuaian jika ada di awal atau akhir
 if (endPage - startPage + 1 < maxPageLinks) {
   startPage = Math.max(1, endPage - maxPageLinks + 1);
 }
@@ -58,8 +41,6 @@ if (startPage === 1) {
 }
 
 const pagesToShow: (number | 'ellipsis')[] = [];
-
-// Add "1" and ellipsis if not starting from 1
 if (startPage > 1) {
   pagesToShow.push(1);
   if (startPage > 2) {
@@ -67,85 +48,229 @@ if (startPage > 1) {
   }
 }
 
-// Add pages in the calculated range
 for (let i = startPage; i <= endPage; i++) {
   pagesToShow.push(i);
 }
 
-// Add ellipsis and "last page" if not ending at totalPages
 if (endPage < totalPages) {
   if (endPage < totalPages - 1) {
     pagesToShow.push('ellipsis');
   }
   pagesToShow.push(totalPages);
 }
-// --- End Pagination Logic ---
+// --- Akhir Logika Paginasi Global ---
+
+
+// --- Logika untuk Bagian Kategori (tidak berubah banyak) ---
+const videosByCategory: { [key: string]: VideoData[] } = {};
+const numberOfVideosPerCategory = 16; // Jumlah video acak yang ingin ditampilkan per kategori
+const usedTitlesForCategories = new Set<string>(); // Set terpisah untuk video kategori
+
+allVideos.forEach(video => {
+  if (!videosByCategory[video.category]) {
+    videosByCategory[video.category] = [];
+  }
+  videosByCategory[video.category].push(video);
+});
+
+const finalVideosByCategory: { [key: string]: VideoData[] } = {};
+const allCategoryNames = Object.keys(videosByCategory);
+
+allCategoryNames.forEach(categoryName => {
+  const videosInThisCategory = videosByCategory[categoryName];
+  const shuffledVideosInThisCategory = videosInThisCategory.sort(() => 0.5 - Math.random());
+
+  const selectedVideosForCategory: VideoData[] = [];
+  for (const video of shuffledVideosInThisCategory) {
+    const normalizedTitle = video.title.toLowerCase().trim();
+    // Gunakan usedTitlesForCategories untuk memastikan keunikan dalam konteks kategori
+    if (!usedTitlesForCategories.has(normalizedTitle)) {
+      selectedVideosForCategory.push(video);
+      usedTitlesForCategories.add(normalizedTitle);
+    }
+    if (selectedVideosForCategory.length >= numberOfVideosPerCategory) {
+      break;
+    }
+  }
+  finalVideosByCategory[categoryName] = selectedVideosForCategory;
+});
+
+const sortedCategories = Object.keys(finalVideosByCategory).sort();
+
+// Video random di bagian "Video Pilihan" (tidak paginasi, hanya bagian terpisah)
+const numberOfRandomVideos = 16;
+const randomVideos: VideoData[] = [];
+const videosForRandomSelection = allVideos.filter(video => {
+    // Pastikan video random juga unik dari yang sudah tampil di paginasi dan di kategori
+    const normalizedTitle = video.title.toLowerCase().trim();
+    return !usedTitlesForCategories.has(normalizedTitle);
+});
+
+const shuffledRandomSelection = videosForRandomSelection.sort(() => 0.5 - Math.random());
+
+for (const video of shuffledRandomSelection) {
+    const normalizedTitle = video.title.toLowerCase().trim();
+    if (!usedTitlesForCategories.has(normalizedTitle)) {
+        randomVideos.push(video);
+        usedTitlesForCategories.add(normalizedTitle);
+    }
+    if (randomVideos.length >= numberOfRandomVideos) {
+        break;
+    }
+}
+// --- Akhir Logika Bagian Kategori ---
+
+
+const allDomains = new Set<string>();
+// Preconnect domains for paginated videos
+paginatedVideos.forEach(video => {
+  try {
+    if (video.thumbnail) allDomains.add(new URL(video.thumbnail).origin);
+    if (video.embedUrl) allDomains.add(new URL(video.embedUrl).origin);
+  } catch (e) {
+    console.error(`[ERROR] URL thumbnail/embed tidak valid untuk video ID ${video.id} (paginatedVideos):`, e);
+  }
+});
+// Preconnect domains for category videos
+Object.values(finalVideosByCategory).flat().forEach(video => {
+  try {
+    if (video.thumbnail) allDomains.add(new URL(video.thumbnail).origin);
+    if (video.embedUrl) allDomains.add(new URL(video.embedUrl).origin);
+  } catch (e) {
+    console.error(`[ERROR] URL thumbnail/embed tidak valid untuk video ID ${video.id} (finalVideosByCategory):`, e);
+  }
+});
+// Preconnect domains for random videos
+randomVideos.forEach(video => {
+  try {
+    if (video.thumbnail) allDomains.add(new URL(video.thumbnail).origin);
+    if (video.embedUrl) allDomains.add(new URL(video.embedUrl).origin);
+  } catch (e) {
+    console.error(`[ERROR] URL thumbnail/embed tidak valid untuk video ID ${video.id} (randomVideos):`, e);
+  }
+});
+
+const preconnectDomains = Array.from(allDomains);
+
+const breadcrumbs = [
+  { name: 'Home', url: `${url}` },
+];
+
+const currentUrl = url;
+const siteName = nama;
+const siteDescription = desk;
 ---
 
 <Layout
-  title={`Home | ${nama}`}
-  description={`Kumpulan video terbaru di ${nama}. Halaman ${currentPage} dari ${totalPages}.`}
-  preconnectDomains={Array.from(preconnectDomains)}
+  title={`${nama} - Video Bokep Indo Terbaru`}
+  description={siteDescription}
+  preconnectDomains={preconnectDomains}
+  siteName={siteName}
+  siteUrl={currentUrl}
 >
-  <main class="homepage" itemscope itemtype="http://schema.org/CollectionPage">
-    <nav class="breadcrumb" aria-label="Navigasi Page Utama" itemscope itemtype="http://schema.org/BreadcrumbList">
-      <ol>
-        {breadcrumbs.map((item, index) => (
-          <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
-            {index > 0 && <span class="separator">/</span>}
-            {item.url ? (
-              <a itemprop="item" href={item.url}>
-                <span itemprop="name">{item.name}</span>
-              </a>
-            ) : (
-              <span itemprop="name">{item.name}</span>
-            )}
-            <meta itemprop="position" content={(index + 1).toString()} />
-          </li>
-        ))}
-      </ol>
-    </nav>
 
-    <h1 class="page-title" itemprop="headline">Selamat Datang di {nama}</h1>
-    <p class="page-description">Jelajahi koleksi video terbaru dan terpopuler kami.</p>
-
-    {paginatedVideos.length === 0 ? (
-      <p class="no-videos">Tidak ada video yang ditemukan saat ini.</p>
-    ) : (
-      <div class="video-grid">
-        {paginatedVideos.map((video) => (
-          <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
-        ))}
+  <main class="home-page" itemscope itemtype="http://schema.org/WebPage">
+    <meta itemprop="url" content={currentUrl} />
+    <meta itemprop="name" content={`${nama} - Video Bokep Indo Terbaru`} />
+    <meta itemprop="description" content={desk} />
+    <div itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content={siteName} />
+      <div itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+        <meta itemprop="url" content={`${currentUrl}/logo.png`} />
       </div>
+    </div>
+    <meta itemprop="datePublished" content={terbit}/>
+    <meta itemprop="dateModified" content={new Date().toISOString()} />
+
+    <section class="hero-section">
+      <h1 itemprop="headline">Selamat Datang di {nama}!</h1>
+      <p itemprop="description">{desk} Tonton Sekarang Juga!</p>
+    </section>
+
+    {/* Bagian Paginasi Global - Mengganti "Video Pilihan" sebelumnya jika ada paginasi */}
+    {paginatedVideos.length > 0 ? (
+      <section class="paginated-videos-section">
+        <h2 class="section-title">Video Terbaru Kami (Halaman {currentPage} dari {totalPages})</h2>
+        <div class="video-grid">
+          {paginatedVideos.map((video) => (
+            <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
+          ))}
+        </div>
+
+        {totalPages > 1 && (
+          <nav class="pagination" aria-label="Navigasi Halaman Utama">
+            {/* Previous button */}
+            {currentPage > 1 && (
+              <a href={`${url}/page/${currentPage - 1}`} class="pagination-link">&laquo; Sebelumnya</a>
+            )}
+
+            {/* Page numbers */}
+            {pagesToShow.map((page) => (
+              page === 'ellipsis' ? (
+                <span class="pagination-link ellipsis">...</span>
+              ) : (
+                <a
+                  href={page === 1 ? `${url}` : `${url}/page/${page}`} // Special link for page 1
+                  class={`pagination-link ${page === currentPage ? 'active' : ''}`}
+                  aria-current={page === currentPage ? 'page' : undefined}
+                >
+                  {page}
+                </a>
+              )
+            ))}
+
+            {/* Next button */}
+            {currentPage < totalPages && (
+              <a href={`${url}/page/${currentPage + 1}`} class="pagination-link">Berikutnya &raquo;</a>
+            )}
+          </nav>
+        )}
+      </section>
+    ) : (
+      <p class="no-videos">Tidak ada video yang ditemukan saat ini.</p>
     )}
 
-    {totalPages > 1 && (
-      <nav class="pagination" aria-label="Navigasi Halaman Utama">
-        {/* Previous button */}
-        {currentPage > 1 && (
-          <a href={`${url}/page/${currentPage - 1}`} class="pagination-link">&laquo; Sebelumnya</a>
-        )}
 
-        {/* Page numbers */}
-        {pagesToShow.map((page) => (
-          page === 'ellipsis' ? (
-            <span class="pagination-link ellipsis">...</span>
-          ) : (
-            <a
-              href={page === 1 ? `${url}` : `${url}/page/${page}`} // Link for page 1 goes to base URL
-              class={`pagination-link ${page === currentPage ? 'active' : ''}`}
-              aria-current={page === currentPage ? 'page' : undefined}
-            >
-              {page}
-            </a>
-          )
-        ))}
+    {/* Bagian Kategori (Masih ada, di bawah paginasi global) */}
+    <section class="all-categories-section">
+      {sortedCategories.length === 0 ? (
+        <p class="no-videos-overall">Belum ada video yang tersedia di portal ini.</p>
+      ) : (
+        sortedCategories.map(categoryName => (
+          <div class="category-group">
+            <h2 class="category-title">
+              {categoryName}
+            </h2>
+            <div class="video-grid">
+              {finalVideosByCategory[categoryName].length === 0 ? (
+                <p class="no-videos-in-category">Tidak ada video dalam kategori ini.</p>
+              ) : (
+                finalVideosByCategory[categoryName].map((video) => (
+                  <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
+                ))
+              )}
+            </div>
+            {videosByCategory[categoryName] && videosByCategory[categoryName].length > numberOfVideosPerCategory && (
+              <div class="view-all-button-container">
+                <a href={`${currentUrl}/category/${slugify(categoryName)}/1`} class="view-all-button">Lihat Semua di kategori {categoryName}</a>
+              </div>
+            )}
+          </div>
+        ))
+      )}
+    </section>
 
-        {/* Next button */}
-        {currentPage < totalPages && (
-          <a href={`${url}/page/${currentPage + 1}`} class="pagination-link">Berikutnya &raquo;</a>
-        )}
-      </nav>
+    {/* Random videos section as a fallback or additional section if needed, separate from global pagination */}
+    {randomVideos.length > 0 && (
+      <section class="random-videos-additional-section">
+        <h2 class="section-title">Rekomendasi Lainnya</h2>
+        <div class="video-grid">
+          {randomVideos.map((video) => (
+            <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
+          ))}
+        </div>
+      </section>
     )}
+
   </main>
 </Layout>
