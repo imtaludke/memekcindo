@@ -19,7 +19,7 @@ const {
   description,
   preconnectDomains = [],
   // Ambil siteName dari props, jika tidak ada, ambil dari env
-  siteName = import.meta.env.PUBLIC_SITE_NAME || 'memekcindo', // <-- Baru
+  siteName = import.meta.env.PUBLIC_SITE_NAME, // <-- Baru
   // Ambil siteUrl dari props, jika tidak ada, ambil dari env
   siteUrl = import.meta.env.PUBLIC_SITE_URL, // <-- Baru
 } = Astro.props;
