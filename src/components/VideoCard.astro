@@ -10,11 +10,11 @@ interface Props {
     id: string;
     title: string;
     thumbnail: string;
-    thumbnailWidth: number; // Dipastikan ada dari processedVideos.json
-    thumbnailHeight: number; // Dipastikan ada dari processedVideos.json
+    thumbnailWidth?: number; // Dipastikan ada dari processedVideos.json
+    thumbnailHeight?: number; // Dipastikan ada dari processedVideos.json
     category: string;
-    duration: number;
-    views: number;
+    duration?: number;
+    views?: number;
     // Add any other properties from VideoData that VideoCard might use
   };
   videoDetailPath: string;
