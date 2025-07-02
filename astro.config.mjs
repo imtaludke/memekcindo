@@ -11,5 +11,10 @@ export default defineConfig({
       changefreq: 'daily',
       priority: 1,
     }),
+      vite: {
+    ssr: {
+      noExternal: ['node:fs', 'node:path'],
+    },
+  },
   ],
 });
