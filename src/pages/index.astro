@@ -1,0 +1,94 @@
+---
+// src/pages/index.astro
+import Layout from '../layouts/BaseLayout.astro';
+import VideoCard from '../components/VideoCard.astro';
+import { slugify } from '../utils/slugify';
+import { nama, url } from '../utils/site.ts';
+import type { VideoData } from '../utils/data.ts'; // Tetap gunakan tipe data yang sama
+
+export const prerender = true;
+
+// !!! PERUBAHAN PENTING DI SINI !!!
+// Menggunakan fetch untuk membaca data JSON dari folder public
+const response = await fetch(`${url}/processedVideos.json`);
+const allVideos: VideoData[] = await response.json();
+// !!! AKHIR PERUBAHAN PENTING !!!
+
+const videosPerPage = 40; // Number of videos per page
+
+// Shuffle all videos randomly
+const shuffledVideos = [...allVideos].sort(() => 0.5 - Math.random());
+
+// Calculate total pages
+const totalPages = Math.ceil(shuffledVideos.length / videosPerPage);
+
+// Get videos for the first page (homepage typically shows page 1)
+const startIndex = 0;
+const endIndex = videosPerPage;
+const paginatedVideos = shuffledVideos.slice(startIndex, endIndex);
+
+const preconnectDomains = new Set<string>();
+paginatedVideos.forEach(video => {
+  try {
+    // `video.thumbnail` is now local, so no preconnect needed for it.
+    if (video.embedUrl) {
+      preconnectDomains.add(new URL(video.embedUrl).origin);
+    }
+  } catch (e) {
+    console.error(`Invalid URL for video ID "${video.id}" (homepage):`, e);
+  }
+});
+
+const pageCanonicalUrl = Astro.url.href;
+
+const breadcrumbs = [
+  { name: 'Home', url: `${url}` },
+];
+---
+
+<Layout
+  title={`Home | ${nama}`}
+  description={`Kumpulan video terbaru di ${nama}. Halaman ${1} dari ${totalPages}.`}
+  preconnectDomains={Array.from(preconnectDomains)}
+>
+  <main class="homepage" itemscope itemtype="http://schema.org/CollectionPage">
+    <nav class="breadcrumb" aria-label="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+      <ol>
+        {breadcrumbs.map((item, index) => (
+          <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+            {index > 0 && <span class="separator">/</span>}
+            {item.url ? (
+              <a itemprop="item" href={item.url}>
+                <span itemprop="name">{item.name}</span>
+              </a>
+            ) : (
+              <span itemprop="name">{item.name}</span>
+            )}
+            <meta itemprop="position" content={(index + 1).toString()} />
+          </li>
+        ))}
+      </ol>
+    </nav>
+
+    <h1 class="page-title" itemprop="headline">Selamat Datang di {nama}</h1>
+    <p class="page-description">Jelajahi koleksi video terbaru dan terpopuler kami.</p>
+
+    {paginatedVideos.length === 0 ? (
+      <p class="no-videos">Tidak ada video yang ditemukan saat ini.</p>
+    ) : (
+      <div class="video-grid">
+        {paginatedVideos.map((video) => (
+          <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
+        ))}
+      </div>
+    )}
+
+    {totalPages > 1 && (
+      <nav class="pagination" aria-label="Navigasi Page Utama">
+        {1 < totalPages && (
+          <a href={`${url}/page/2`} class="pagination-link">Berikutnya &raquo;</a>
+        )}
+      </nav>
+    )}
+  </main>
+</Layout>
