@@ -5,20 +5,17 @@ import VideoCard from '../components/VideoCard.astro';
 import { slugify } from '../utils/slugify';
 import { getAllVideos, type VideoData } from '../utils/data';
 
-// --- Pertahankan import dari site.ts ---
 import { nama, desk, url, terbit } from '../utils/site.ts'; 
-// --- Akhir import site.ts ---
 
 export const prerender = true;
 
 const allVideos: VideoData[] = await getAllVideos();
 
 const videosByCategory: { [key: string]: VideoData[] } = {};
-const numberOfVideosPerCategory = 16; // Jumlah video acak yang ingin ditampilkan per kategori
+const numberOfVideosPerCategory = 16; 
 
-const usedTitlesForCategories = new Set<string>(); // Melacak judul video yang sudah ditampilkan di kategori
+const usedTitlesForCategories = new Set<string>(); 
 
-// Mengelompokkan dan memilih video untuk setiap kategori
 allVideos.forEach(video => {
   if (!videosByCategory[video.category]) {
     videosByCategory[video.category] = [];
@@ -32,48 +29,39 @@ const allCategoryNames = Object.keys(videosByCategory);
 allCategoryNames.forEach(categoryName => {
   const videosInThisCategory = videosByCategory[categoryName];
 
-  // Acak video di dalam kategori ini untuk mendapatkan pilihan yang acak
   const shuffledVideosInThisCategory = videosInThisCategory
     .sort(() => 0.5 - Math.random());
 
   const selectedVideosForCategory: VideoData[] = [];
 
-  // Iterasi melalui video yang diacak dan tambahkan hanya yang judulnya unik
   for (const video of shuffledVideosInThisCategory) {
     const normalizedTitle = video.title.toLowerCase().trim();
     if (!usedTitlesForCategories.has(normalizedTitle)) {
       selectedVideosForCategory.push(video);
-      usedTitlesForCategories.add(normalizedTitle); // Tambahkan judul ke set yang sudah digunakan
+      usedTitlesForCategories.add(normalizedTitle); 
     }
     if (selectedVideosForCategory.length >= numberOfVideosPerCategory) {
-      break; // Hentikan jika sudah mencapai batas per kategori
+      break; 
     }
   }
   finalVideosByCategory[categoryName] = selectedVideosForCategory;
 });
 
-const sortedCategories = Object.keys(finalVideosByCategory).sort(); // Urutkan kategori secara alfabetis
+const sortedCategories = Object.keys(finalVideosByCategory).sort(); 
 
-// --- Logika untuk Bagian "Video Pilihan" (Random Videos) - TANPA PAGINASI ---
 const videosForRandomSelection = allVideos.filter(video => {
   const normalizedTitle = video.title.toLowerCase().trim();
-  // Filter video yang judulnya BELUM terpakai di bagian kategori
   return !usedTitlesForCategories.has(normalizedTitle);
 });
 
-// Acak semua video yang tersisa untuk bagian "Video Pilihan"
 const shuffledRandomVideos = videosForRandomSelection
   .sort(() => 0.5 - Math.random());
 
-// Batasi jumlah video acak yang ditampilkan di halaman utama (opsional, disarankan jika video banyak)
-const maxRandomVideosToShow = 32; // Tampilkan maksimal 32 video acak di bagian ini
+const maxRandomVideosToShow = 16; 
 const allRandomVideos = shuffledRandomVideos.slice(0, maxRandomVideosToShow);
-// --- Akhir Logika Tanpa Paginasi ---
 
-// Mengumpulkan semua domain untuk preconnect (optimasi performa)
 const allDomains = new Set<string>();
 
-// Mengiterasi video di bagian "Video Pilihan" (sekarang semua video random yang dibatasi)
 allRandomVideos.forEach(video => {
   try {
     if (video.embedUrl) allDomains.add(new URL(video.embedUrl).origin);
@@ -82,7 +70,6 @@ allRandomVideos.forEach(video => {
   }
 });
 
-// Mengiterasi video di setiap kategori
 Object.values(finalVideosByCategory).flat().forEach(video => {
   try {
     if (video.embedUrl) allDomains.add(new URL(video.embedUrl).origin);
@@ -91,18 +78,16 @@ Object.values(finalVideosByCategory).flat().forEach(video => {
   }
 });
 
-const preconnectDomains = Array.from(allDomains); // Ubah Set menjadi Array untuk props
+const preconnectDomains = Array.from(allDomains); 
 
-// Breadcrumbs untuk skema markup (JSON-LD)
 const breadcrumbs = [
-  { name: 'Home', url: `${url}` }, // Menggunakan 'url' dari site.ts
+  { name: 'Home', url: `${url}` }, 
 ];
 
-// Variabel untuk Layout props diambil dari site.ts
 const currentUrl = url;
 const siteName = nama;
 const siteDescription = desk;
-const sitePublishedDate = terbit; // Menggunakan 'terbit' dari site.ts
+const sitePublishedDate = terbit; 
 ---
 
 <Layout
@@ -131,7 +116,6 @@ const sitePublishedDate = terbit; // Menggunakan 'terbit' dari site.ts
       <p itemprop="description">{siteDescription} Tonton Sekarang Juga!</p>
     </section>
 
-    {/* Bagian "Video Pilihan" (Sekarang tanpa Paginasi dan terbatas) */}
     <section class="random-videos-section">
       {allRandomVideos.length > 0 ? (
         <>
@@ -141,14 +125,12 @@ const sitePublishedDate = terbit; // Menggunakan 'terbit' dari site.ts
               <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
             ))}
           </div>
-          {/* Tidak ada lagi navigasi paginasi di sini */}
         </>
       ) : (
         <p class="no-videos">Tidak ada video pilihan yang ditemukan saat ini.</p>
       )}
     </section>
 
-    {/* Bagian Kategori (tidak berubah, tetap tanpa paginasi di index) */}
     <section class="all-categories-section">
       {sortedCategories.length === 0 ? (
         <p class="no-videos-overall">Belum ada video yang tersedia di portal ini.</p>
@@ -167,7 +149,6 @@ const sitePublishedDate = terbit; // Menggunakan 'terbit' dari site.ts
                 ))
               )}
             </div>
-            {/* Tombol "Lihat Semua" untuk kategori, masih menunjuk ke halaman paginasi kategori */}
             {videosByCategory[categoryName] && videosByCategory[categoryName].length > numberOfVideosPerCategory && (
               <div class="view-all-button-container">
                 <a href={`${url}/category/${slugify(categoryName)}/1`} class="view-all-button">Lihat Semua di kategori {categoryName}</a>
