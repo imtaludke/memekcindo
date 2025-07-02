@@ -1,69 +1,128 @@
----
 // src/components/VideoCard.astro
 import { slugify } from '../utils/slugify';
+import type { VideoData } from '../utils/data';
 import { url } from '../utils/site.ts';
 
-interface Props {
-  video: {
-    id: string;
-    title: string;
-    thumbnail: string;
-    thumbnailWidth?: number;
-    thumbnailHeight?: number;
-    category: string;
-    duration?: number;
-    // Removed: views: number;
-    // Add any other properties from VideoData that VideoCard might use
-  };
-  videoDetailPath: string;
+export interface Props {
+  video: VideoData;
+  headingLevel?: 'h2' | 'h3';
 }
 
-const { video, videoDetailPath } = Astro.props;
+const { video, headingLevel = 'h2' } = Astro.props;
+const videoSlug = slugify(video.title);
+const videoDetailPath = `${url}/${videoSlug}-${video.id}/`;
 
-// Format duration from seconds to MM:SS
-function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
-
-const formattedDuration = formatDuration(video.duration);
-
-// Removed: formatViews function and its usage
-// const formattedViews = formatViews(video.views);
 ---
 
-<div class="video-card" itemprop="video" itemscope itemtype="http://schema.org/VideoObject">
-  <meta itemprop="uploadDate" content={new Date().toISOString()} /> {/* Placeholder: You might want to add actual date */}
-  <meta itemprop="duration" content={`PT${video.duration}S`} />
-  <meta itemprop="name" content={video.title} />
-  <meta itemprop="description" content={`Video ${video.title} in category ${video.category}.`} />
-
-  <a href={`${url}${videoDetailPath}`} class="video-thumbnail-link">
-    <div class="video-thumbnail-wrapper">
-      <img
-        src={video.thumbnail}
-        alt={`Thumbnail for ${video.title}`}
-        title={`${video.title} - ${formattedDuration}`}
-        width={video.thumbnailWidth}
-        height={video.thumbnailHeight}
-        loading="lazy"
-        itemprop="thumbnailUrl"
-      />
-      <span class="video-duration">{formattedDuration}</span>
-    </div>
-  </a>
-  <div class="video-info">
-    <h3 class="video-title" itemprop="name">
-      <a href={`${url}${videoDetailPath}`}>{video.title}</a>
-    </h3>
-    <p class="video-meta">
-      {/* Removed: <span class="video-views" itemprop="interactionCount">{formattedViews}</span> */}
-      <span class="video-category">
-        <a href={`${url}/category/${slugify(video.category)}/1`} itemprop="isPartOf">
-          {video.category}
-        </a>
+<a href={videoDetailPath} class="video-card">
+  <div class="thumbnail-container">
+    <img
+      src={video.thumbnail}
+      alt={video.title}
+      title={video.title}
+      width={video.thumbnailWidth}
+      height={video.thumbnailHeight}
+      loading="lazy"
+      class="video-thumbnail"
+    />
+    {video.previewUrl && (
+      <video
+        preload="none"
+        loop
+        muted
+        playsinline
+        class="video-preview"
+        data-src={video.previewUrl}
+        onerror="this.closest('.video-card').classList.add('video-preview-error');"
+      >
+        Your browser does not support the video tag.
+      </video>
+    )}
+    {video.duration && (
+      <span class="video-duration">
+        {Math.floor(video.duration / 60).toString().padStart(2, '0')}:{(video.duration % 60).toString().padStart(2, '0')}
       </span>
-    </p>
+    )}
   </div>
-</div>
+  <div class="video-info">
+    {headingLevel === 'h2' ? (
+      <h2 class="video-title">{video.title}</h2>
+    ) : (
+      <h3 class="video-title">{video.title}</h3>
+    )}
+    <p class="video-category">{video.category}</p>
+  </div>
+</a>
+
+<script>
+  if (!document.documentElement.hasAttribute('data-video-card-script-loaded')) {
+    document.documentElement.setAttribute('data-video-card-script-loaded', 'true');
+
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.video-card').forEach(card => {
+        const videoPreview = card.querySelector('.video-preview');
+        const videoThumbnail = card.querySelector('.video-thumbnail');
+
+        if (videoPreview) {
+          let playTimeout;
+
+          videoPreview.addEventListener('play', () => {
+            if (videoThumbnail) {
+              videoThumbnail.style.opacity = '0';
+              videoThumbnail.style.transition = 'opacity 0.3s ease-out';
+            }
+          });
+
+          videoPreview.addEventListener('pause', () => {
+            if (videoThumbnail) {
+              videoThumbnail.style.opacity = '1';
+            }
+          });
+
+          videoPreview.addEventListener('ended', () => {
+            if (videoThumbnail) {
+                videoThumbnail.style.opacity = '1';
+            }
+            if (videoPreview) videoPreview.currentTime = 0;
+          });
+
+          card.addEventListener('mouseenter', () => {
+            clearTimeout(playTimeout);
+
+            playTimeout = setTimeout(() => {
+              if (!card.classList.contains('video-preview-error')) {
+                const src = videoPreview.getAttribute('data-src');
+                if (src && videoPreview.src !== src) {
+                  videoPreview.src = src;
+                  videoPreview.load();
+                }
+                videoPreview.play().catch(e => {
+                  console.warn('Video playback failed, adding error class:', e);
+                  card.classList.add('video-preview-error');
+                  if (videoThumbnail) videoThumbnail.style.opacity = '1';
+                });
+              }
+            }, 500);
+          });
+
+          card.addEventListener('mouseleave', () => {
+            clearTimeout(playTimeout);
+            if (videoPreview && !videoPreview.paused) {
+              videoPreview.pause();
+              videoPreview.currentTime = 0;
+            }
+            if (videoThumbnail) {
+                videoThumbnail.style.opacity = '1';
+            }
+          });
+
+          videoPreview.addEventListener('error', () => {
+            console.error('Video preview encountered an error loading or playing.');
+            card.classList.add('video-preview-error');
+            if (videoThumbnail) videoThumbnail.style.opacity = '1';
+          });
+        }
+      });
+    });
+  }
+</script>
