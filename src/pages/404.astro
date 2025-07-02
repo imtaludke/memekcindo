@@ -6,13 +6,6 @@ import { slugify } from '../utils/slugify';
 import { nama, url, desk } from '../utils/site.ts';
 import type { VideoData } from '../utils/data'; // Pastikan tipe ini masih diimpor
 
-// !!! PERUBAHAN PENTING DI SINI !!!
-// Mengimpor data JSON langsung dari public/processedVideos.json
-// Daripada mencoba fetch melalui URL
-import processedVideosJson from '../../public/processedVideos.json';
-const allVideos: VideoData[] = processedVideosJson as VideoData[];
-// !!! AKHIR PERUBAHAN PENTING !!!
-
 export const prerender = true; // Halaman 404 biasanya di-prerender
 const preconnectDomains = Array.from(allDomains);
 
