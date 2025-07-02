@@ -12,7 +12,6 @@ export const prerender = true;
 const response = await fetch(`${url}/processedVideos.json`);
 const allVideos: VideoData[] = await response.json(); // Variabel allVideos ini akan digunakan oleh logika di luar getStaticPaths
 
-const videosPerPage = 40;
 
 // Get static paths for all categories and pages
 export async function getStaticPaths() {
@@ -21,6 +20,7 @@ export async function getStaticPaths() {
   // Ini adalah cara Astro memastikan data tersedia saat build time untuk getStaticPaths.
   const allVideosForPaths: VideoData[] = (await import('../../../../public/processedVideos.json')).default as VideoData[];
   // --- AKHIR PERUBAHAN UTAMA ---
+const videosPerPage = 40;
 
   const categoryData: { [key: string]: number } = {};
   // Gunakan `allVideosForPaths` di sini
