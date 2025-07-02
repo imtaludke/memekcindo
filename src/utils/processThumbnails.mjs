@@ -43,9 +43,9 @@ if (!YOUR_DOMAIN) {
 // --- AKHIR PERUBAHAN UTAMA ---
 
 const PLACEHOLDER_THUMBNAIL_PATH = `${YOUR_DOMAIN}/placeholder.webp`;
-const DEFAULT_FALLBACK_WIDTH = 640;
-const DEFAULT_FALLBACK_HEIGHT = 360;
-const OPTIMIZED_THUMBNAIL_WIDTH = 640;
+const DEFAULT_FALLBACK_WIDTH = 320;
+const DEFAULT_FALLBACK_HEIGHT = 180;
+const OPTIMIZED_THUMBNAIL_WIDTH = 200;
 
 async function processThumbnails() {
   console.log('Starting thumbnail processing...');
@@ -87,7 +87,7 @@ async function processThumbnails() {
 
         const optimizedBuffer = await sharp(inputBuffer)
           .resize({ width: OPTIMIZED_THUMBNAIL_WIDTH, withoutEnlargement: true })
-          .webp({ quality: 80 })
+          .webp({ quality: 70 })
           .toBuffer();
 
         const optimizedMetadata = await sharp(optimizedBuffer).metadata();
