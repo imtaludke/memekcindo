@@ -1,3 +1,4 @@
+---
 // src/pages/index.astro
 import Layout from '../layouts/BaseLayout.astro';
 import VideoCard from '../components/VideoCard.astro';
@@ -75,7 +76,7 @@ const paginatedRandomVideos = shuffledRandomVideos.slice(startIndexRandom, endIn
 // Logika untuk membuat deretan tautan paginasi (sama seperti sebelumnya, disesuaikan untuk random)
 const maxPageLinks = 5;
 let startPage = Math.max(1, currentPageRandom - Math.floor(maxPageLinks / 2));
-let endPage = Math.min(totalPagesRandom, currentPageRandom + Math.floor(maxPage / 2));
+let endPage = Math.min(totalPagesRandom, currentPageRandom + Math.floor(maxPageLinks / 2));
 
 if (endPage - startPage + 1 < maxPageLinks) {
   startPage = Math.max(1, endPage - maxPageLinks + 1);
@@ -110,34 +111,18 @@ const allDomains = new Set<string>();
 // Iterasi melalui paginatedRandomVideos untuk preconnect
 paginatedRandomVideos.forEach(video => {
   try {
-    // HANYA tambahkan origin untuk embedUrl (karena thumbnail sekarang lokal dan tidak butuh preconnect)
-    if (video.embedUrl) {
-        // Pastikan embedUrl adalah URL yang valid dan absolut sebelum membuat objek URL
-        if (video.embedUrl.startsWith('http://') || video.embedUrl.startsWith('https://')) {
-            allDomains.add(new URL(video.embedUrl).origin);
-        } else {
-            console.warn(`[WARN] embedUrl tidak valid atau relatif untuk video ID ${video.id} (paginatedRandomVideos): ${video.embedUrl}`);
-        }
-    }
+    if (video.embedUrl) allDomains.add(new URL(video.embedUrl).origin);
   } catch (e) {
-    console.error(`[ERROR] URL embed tidak valid untuk video ID ${video.id} (paginatedRandomVideos):`, e);
+    console.error(`[ERROR] URL thumbnail/embed tidak valid untuk video ID ${video.id} (paginatedRandomVideos):`, e);
   }
 });
 
 // Iterasi melalui finalVideosByCategory untuk preconnect
 Object.values(finalVideosByCategory).flat().forEach(video => {
   try {
-    // HANYA tambahkan origin untuk embedUrl (karena thumbnail sekarang lokal dan tidak butuh preconnect)
-    if (video.embedUrl) {
-        // Pastikan embedUrl adalah URL yang valid dan absolut sebelum membuat objek URL
-        if (video.embedUrl.startsWith('http://') || video.embedUrl.startsWith('https://')) {
-            allDomains.add(new URL(video.embedUrl).origin);
-        } else {
-            console.warn(`[WARN] embedUrl tidak valid atau relatif untuk video ID ${video.id} (finalVideosByCategory): ${video.embedUrl}`);
-        }
-    }
+    if (video.embedUrl) allDomains.add(new URL(video.embedUrl).origin);
   } catch (e) {
-    console.error(`[ERROR] URL embed tidak valid untuk video ID ${video.id} (finalVideosByCategory):`, e);
+    console.error(`[ERROR] URL thumbnail/embed tidak valid untuk video ID ${video.id} (finalVideosByCategory):`, e);
   }
 });
 
