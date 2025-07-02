@@ -69,8 +69,7 @@ const pageCanonicalUrl = new URL(Astro.url.pathname, url).href;
 const breadcrumbs = [
   { name: 'Home', url: `${url}` },
   { name: 'Category', url: `${url}/category/` },
-  { name: categoryName, url: `${url}/category/${slug}/` },
-  { name: `Page ${currentPage}`, url: `${url}/category/${slug}/${currentPage}/` },
+  { name: `categoryName Page ${currentPage}`, url: `${url}/category/${slug}/${currentPage}/` },
 ];
 ---
 
