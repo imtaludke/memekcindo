@@ -3,8 +3,6 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-{
-  "scripts": {
     "dev": "node src/utils/processThumbnails.mjs && astro dev",
     "start": "node src/utils/processThumbnails.mjs && astro dev",
     "build": "node src/utils/processThumbnails.mjs && node scripts/prepareData.mjs && astro build && node ./scripts/notify-indexnow.js",
