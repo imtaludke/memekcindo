@@ -1,42 +1,47 @@
 // scripts/notify-indexnow.js
-import fetch from 'node-fetch'; // Pastikan 'node-fetch' terinstall: npm install node-fetch
+import 'dotenv/config';
+import fetch from 'node-fetch';
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import 'dotenv/config';
 
-// Dapatkan __dirname di ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// --- Fungsi slugify yang sama dengan yang digunakan di tempat lain ---
-// Ditempatkan langsung di sini untuk menghindari masalah impor .ts dari skrip .js/.mjs
 function slugify(text) {
   return text
     .toString()
-    .normalize('NFD') // Pecah karakter beraksen menjadi dasar + diakritik
-    .replace(/[\u0300-\u036f]/g, '') // Hapus diakritik
-    .toLowerCase() // Ubah ke huruf kecil
-    .trim() // Hapus spasi di awal/akhir
-    .replace(/\s+/g, '-') // Ganti spasi dengan tanda hubung
-    .replace(/[^\w-]+/g, '') // Hapus semua karakter non-kata
-    .replace(/--+/g, '-'); // Ganti beberapa tanda hubung dengan satu
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-');
 }
 // --- Akhir Fungsi slugify ---
 
-// --- Konfigurasi Anda ---
-const API_KEY_LOCATION = `${PUBLIC_SITE_URL}/${INDEXNOW_API_KEY_NAME}.txt`;
+// --- Konfigurasi Anda - Sekarang ambil dari variabel lingkungan ---
+const YOUR_DOMAIN = process.env.PUBLIC_SITE_URL;
+const API_KEY_NAME = process.env.INDEXNOW_API_KEY_NAME;
+const API_KEY_LOCATION = `${YOUR_DOMAIN}/${API_KEY_NAME}.txt`;
 const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/IndexNow';
 // --- Akhir Konfigurasi ---
+
+if (!YOUR_DOMAIN) {
+  console.error("Error: PUBLIC_SITE_URL is not defined in environment variables for IndexNow script. Please check your .env file.");
+  process.exit(1);
+}
 
 // Path langsung ke file videos.json Anda
 const VIDEOS_JSON_PATH = path.resolve(__dirname, '../src/data/videos.json');
 // Path ke cache URL terakhir yang dikirim (akan disimpan di root proyek)
 const LAST_SENT_URLS_CACHE = path.resolve(__dirname, '../.indexnow_cache.json');
 
-/**
- * Fungsi untuk mendapatkan semua URL video dari file videos.json.
- */
+// ... (sisa kode getAllVideoUrls, sendToIndexNow, dan main sama seperti sebelumnya) ...
+// Pastikan getAllVideoUrls menggunakan YOUR_DOMAIN
+// return `${YOUR_DOMAIN}/${slug}-${video.id}/`;
+
 async function getAllVideoUrls() {
     try {
         const fileContent = await fs.readFile(VIDEOS_JSON_PATH, 'utf-8');
@@ -48,8 +53,8 @@ async function getAllVideoUrls() {
         }
 
         return allVideos.map(video => {
-            const slug = slugify(video.title || 'untitled-video'); // Tambahkan fallback untuk judul
-            return `${PUBLIC_SITE_URL}/${slug}-${video.id}/`;
+            const slug = slugify(video.title || 'untitled-video');
+            return `${YOUR_DOMAIN}/${slug}-${video.id}/`;
         });
     } catch (error) {
         console.error('Gagal memuat atau memproses videos.json:', error);
@@ -57,9 +62,6 @@ async function getAllVideoUrls() {
     }
 }
 
-/**
- * Mengirim daftar URL ke IndexNow API.
- */
 async function sendToIndexNow(urlsToSend) {
     if (urlsToSend.length === 0) {
         console.log('Tidak ada URL baru atau yang diperbarui untuk dikirim ke IndexNow.');
@@ -71,15 +73,15 @@ async function sendToIndexNow(urlsToSend) {
         const chunk = urlsToSend.slice(i, i + chunkSize);
 
         const payload = {
-            host: new URL(PUBLIC_SITE_URL).hostname,
-            key: INDEXNOW_API_KEY_NAME,
+            host: new URL(YOUR_DOMAIN).hostname,
+            key: API_KEY_NAME,
             keyLocation: API_KEY_LOCATION,
             urlList: chunk,
         };
 
         try {
             console.log(`Mengirim ${chunk.length} URL ke IndexNow (chunk ${Math.floor(i / chunkSize) + 1})...`);
-            const response = await fetch(INDEXNOW_ENDPOINT, { // Menggunakan 'fetch' yang diimpor
+            const response = await fetch(INDEXNOW_ENDPOINT, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json; charset=utf-8',
@@ -100,9 +102,6 @@ async function sendToIndexNow(urlsToSend) {
     }
 }
 
-/**
- * Fungsi utama yang mengelola proses notifikasi IndexNow.
- */
 async function main() {
     const currentUrls = await getAllVideoUrls();
     let lastSentUrls = [];
@@ -126,5 +125,4 @@ async function main() {
     }
 }
 
-// Jalankan fungsi utama
 main();
