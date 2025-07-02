@@ -10,7 +10,7 @@ export const prerender = true;
 // --- PERBAIKAN PENTING DI SINI ---
 // Ganti fetch dengan import langsung untuk membaca data JSON dari folder public
 // Path: dari src/pages/category/ ke public/ adalah '../../public/'
-import processedVideosJson from '../../public/processedVideos.json';
+import processedVideosJson from '../public/processedVideos.json';
 const allVideos: VideoData[] = processedVideosJson as VideoData[];
 // --- AKHIR PERBAIKAN PENTING ---
 
