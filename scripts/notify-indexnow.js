@@ -1,12 +1,27 @@
 // scripts/notify-indexnow.js
-import fetch from 'node-fetch';
-import fs from 'fs/promises'; // Using fs/promises for asynchronous file operations
-import path from 'path';     // <--- ENSURE THIS LINE IS PRESENT AND CORRECT
+import fetch from 'node-fetch'; // Pastikan 'node-fetch' terinstall: npm install node-fetch
+import fs from 'fs/promises';
+import path from 'path';
 import { fileURLToPath } from 'url';
 
-// Get __dirname in ES modules
+// Dapatkan __dirname di ES modules
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename); // 'path' is used here
+const __dirname = path.dirname(__filename);
+
+// --- Fungsi slugify yang sama dengan yang digunakan di tempat lain ---
+// Ditempatkan langsung di sini untuk menghindari masalah impor .ts dari skrip .js/.mjs
+function slugify(text) {
+  return text
+    .toString()
+    .normalize('NFD') // Pecah karakter beraksen menjadi dasar + diakritik
+    .replace(/[\u0300-\u036f]/g, '') // Hapus diakritik
+    .toLowerCase() // Ubah ke huruf kecil
+    .trim() // Hapus spasi di awal/akhir
+    .replace(/\s+/g, '-') // Ganti spasi dengan tanda hubung
+    .replace(/[^\w-]+/g, '') // Hapus semua karakter non-kata
+    .replace(/--+/g, '-'); // Ganti beberapa tanda hubung dengan satu
+}
+// --- Akhir Fungsi slugify ---
 
 // --- Konfigurasi Anda ---
 const YOUR_DOMAIN = 'https://memekcindo.pages.dev'; // Ganti dengan domain Anda yang sebenarnya
@@ -22,13 +37,10 @@ const LAST_SENT_URLS_CACHE = path.resolve(__dirname, '../.indexnow_cache.json');
 
 /**
  * Fungsi untuk mendapatkan semua URL video dari file videos.json.
- * Menggunakan fs.readFile untuk kompatibilitas yang lebih luas.
  */
 async function getAllVideoUrls() {
     try {
-        // Baca konten file JSON sebagai string
         const fileContent = await fs.readFile(VIDEOS_JSON_PATH, 'utf-8');
-        // Parse string JSON menjadi objek JavaScript
         const allVideos = JSON.parse(fileContent);
 
         if (!Array.isArray(allVideos)) {
@@ -36,11 +48,8 @@ async function getAllVideoUrls() {
             return [];
         }
 
-        // Fungsi slugify dasar, bisa disesuaikan jika Anda punya implementasi yang lebih kompleks
-        const slugify = (text) => text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-
         return allVideos.map(video => {
-            const slug = slugify(video.title);
+            const slug = slugify(video.title || 'untitled-video'); // Tambahkan fallback untuk judul
             return `${YOUR_DOMAIN}/${slug}-${video.id}/`;
         });
     } catch (error) {
@@ -51,7 +60,6 @@ async function getAllVideoUrls() {
 
 /**
  * Mengirim daftar URL ke IndexNow API.
- * Mendukung pengiriman chunking jika daftar URL sangat panjang.
  */
 async function sendToIndexNow(urlsToSend) {
     if (urlsToSend.length === 0) {
@@ -59,8 +67,7 @@ async function sendToIndexNow(urlsToSend) {
         return;
     }
 
-    // Batasan IndexNow API adalah 10.000 URL per permintaan
-    const chunkSize = 10000; 
+    const chunkSize = 10000;
     for (let i = 0; i < urlsToSend.length; i += chunkSize) {
         const chunk = urlsToSend.slice(i, i + chunkSize);
 
@@ -73,7 +80,7 @@ async function sendToIndexNow(urlsToSend) {
 
         try {
             console.log(`Mengirim ${chunk.length} URL ke IndexNow (chunk ${Math.floor(i / chunkSize) + 1})...`);
-            const response = await fetch(INDEXNOW_ENDPOINT, {
+            const response = await fetch(INDEXNOW_ENDPOINT, { // Menggunakan 'fetch' yang diimpor
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json; charset=utf-8',
@@ -96,7 +103,6 @@ async function sendToIndexNow(urlsToSend) {
 
 /**
  * Fungsi utama yang mengelola proses notifikasi IndexNow.
- * Membandingkan URL saat ini dengan cache URL sebelumnya untuk mengirim hanya yang baru/diperbarui.
  */
 async function main() {
     const currentUrls = await getAllVideoUrls();
@@ -106,16 +112,13 @@ async function main() {
         const cacheContent = await fs.readFile(LAST_SENT_URLS_CACHE, 'utf-8');
         lastSentUrls = JSON.parse(cacheContent);
     } catch (error) {
-        // File cache belum ada atau rusak, ini normal untuk pertama kali
         console.log('Cache IndexNow tidak ditemukan atau rusak, akan mengirim semua URL baru.');
     }
 
-    // Filter URL yang benar-benar baru atau belum pernah dikirim
     const urlsToSubmit = currentUrls.filter(url => !lastSentUrls.includes(url));
 
     await sendToIndexNow(urlsToSubmit);
 
-    // Setelah semua pengiriman selesai, perbarui cache dengan URL yang saat ini ada di situs.
     try {
         await fs.writeFile(LAST_SENT_URLS_CACHE, JSON.stringify(currentUrls), 'utf-8');
         console.log('Cache IndexNow berhasil diperbarui.');
