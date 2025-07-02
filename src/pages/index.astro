@@ -168,7 +168,7 @@ const siteDescription = desk;
     <section class="random-videos-section">
       {paginatedRandomVideos.length > 0 ? (
         <>
-          <h2 class="section-title">Video Pilihan (Halaman {currentPageRandom} dari {totalPagesRandom})</h2>
+          <h2 class="section-title">Video Pilihan</h2>
           <div class="video-grid">
             {paginatedRandomVideos.map((video) => (
               <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
