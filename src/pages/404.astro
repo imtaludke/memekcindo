@@ -2,20 +2,16 @@
 // src/pages/404.astro
 import Layout from '../layouts/BaseLayout.astro';
 import VideoCard from '../components/VideoCard.astro';
-// !!! PERUBAHAN PENTING DI SINI !!!
-// Hapus import getAllVideos dan ganti dengan fetch untuk processedVideos.json
-import { nama, url, desk } from '../utils/site.ts';
+// !!! PERUBAHAN DI SINI: HANYA IMPORT type VideoData !!!
+import { type VideoData } from '../utils/data'; // getAllVideos SUDAH DIHAPUS DARI SINI
 import { slugify } from '../utils/slugify';
-import type { VideoData } from '../utils/data'; // Pastikan tipe ini masih diimpor
-// !!! AKHIR PERUBAHAN PENTING !!!
+import { nama, url, desk } from '../utils/site.ts';
 
 export const prerender = true; // Halaman 404 biasanya di-prerender
 
-// !!! PERUBAHAN PENTING DI SINI !!!
 // Menggunakan fetch untuk membaca data JSON dari folder public
 const response = await fetch(`${url}/processedVideos.json`);
 const allVideos: VideoData[] = await response.json();
-// !!! AKHIR PERUBAHAN PENTING !!!
 
 // Ambil beberapa video acak untuk ditampilkan
 const numberOfRandomVideos = 16;
