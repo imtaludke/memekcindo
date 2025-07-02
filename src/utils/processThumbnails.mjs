@@ -1,22 +1,23 @@
 // src/utils/processThumbnails.mjs
 
+import 'dotenv/config'; // <-- Tambahkan ini di bagian paling atas
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import rawVideosData from '../data/videos.json' with { type: 'json' };
 
-// --- FUNGSI SLUGIFY DITEMPATKAN LANGSUNG DI SINI ---
+// --- FUNGSI SLUGIFY ---
 function slugify(text) {
   return text
     .toString()
-    .normalize('NFD') // Pecah karakter beraksen menjadi dasar + diakritik
-    .replace(/[\u0300-\u036f]/g, '') // Hapus diakritik
-    .toLowerCase() // Ubah ke huruf kecil
-    .trim() // Hapus spasi di awal/akhir
-    .replace(/\s+/g, '-') // Ganti spasi dengan tanda hubung
-    .replace(/[^\w-]+/g, '') // Hapus semua karakter non-kata
-    .replace(/--+/g, '-'); // Ganti beberapa tanda hubung dengan satu
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-');
 }
 // --- AKHIR FUNGSI SLUGIFY ---
 
@@ -27,10 +28,21 @@ const __dirname = path.dirname(__filename);
 
 const projectRoot = path.join(__dirname, '../../');
 const publicDir = path.join(projectRoot, 'public');
-const optimizedThumbnailsDir = path.join(publicDir, 'optimized-thumbnails');
+
+const OPTIMIZED_IMAGES_SUBDIR = 'picture';
+const optimizedThumbnailsDir = path.join(publicDir, OPTIMIZED_IMAGES_SUBDIR);
+
 const processedVideosPath = path.join(publicDir, 'processedVideos.json');
 
-const PLACEHOLDER_THUMBNAIL_PATH = '/placeholder.webp';
+// --- PERUBAHAN UTAMA DI SINI: Akses dari process.env ---
+const YOUR_DOMAIN = process.env.PUBLIC_SITE_URL;
+if (!YOUR_DOMAIN) {
+  console.error("Error: PUBLIC_SITE_URL is not defined in environment variables. Please check your .env file and ensure it's loaded.");
+  process.exit(1); // Keluar dari proses jika domain tidak ditemukan
+}
+// --- AKHIR PERUBAHAN UTAMA ---
+
+const PLACEHOLDER_THUMBNAIL_PATH = `${YOUR_DOMAIN}/placeholder.webp`;
 const DEFAULT_FALLBACK_WIDTH = 640;
 const DEFAULT_FALLBACK_HEIGHT = 360;
 const OPTIMIZED_THUMBNAIL_WIDTH = 640;
@@ -45,14 +57,14 @@ async function processThumbnails() {
   for (const video of videosData) {
     const videoSlug = slugify(video.title || 'untitled-video');
     const thumbnailFileName = `${videoSlug}-${video.id}.webp`;
-    
+
     const outputPath = path.join(optimizedThumbnailsDir, thumbnailFileName);
-    const relativeThumbnailPath = `/optimized-thumbnails/${thumbnailFileName}`;
+    const relativeThumbnailPath = `${YOUR_DOMAIN}/${OPTIMIZED_IMAGES_SUBDIR}/${thumbnailFileName}`;
 
     try {
       if (video.thumbnail) {
         let inputBuffer;
-        
+
         if (video.thumbnail.startsWith('http')) {
           console.log(`Downloading thumbnail for ${video.title} from ${video.thumbnail}`);
           const response = await fetch(video.thumbnail);
@@ -60,7 +72,7 @@ async function processThumbnails() {
             throw new Error(`Failed to download thumbnail: ${response.statusText}`);
           }
           inputBuffer = Buffer.from(await response.arrayBuffer());
-        } 
+        }
         else {
           const localInputPath = path.join(publicDir, video.thumbnail);
           try {
@@ -68,7 +80,7 @@ async function processThumbnails() {
             inputBuffer = await fs.readFile(localInputPath);
             console.log(`Using local thumbnail for ${video.title}: ${localInputPath}`);
           } catch (localFileError) {
-            console.error(`[ERROR] Local thumbnail file not found for ${video.title}: ${localInputPath}.`, localFileError.message);
+            console.error(`[ERROR] Local thumbnail file not found for ${video.title}: ${localFileError.message}`);
             throw new Error(`Local thumbnail not found or accessible: ${localFileError.message}`);
           }
         }
