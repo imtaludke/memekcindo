@@ -1,40 +1,13 @@
 ---
-// src/pages/tags/index.astro
-// Halaman indeks yang menampilkan semua tags unik
-
 import Layout from '../../layouts/BaseLayout.astro';
 import { nama, url } from '../../utils/site.ts';
-import { slugify } => {
-  // Pastikan slugify selalu mengembalikan string
-  if (typeof str !== 'string') {
-    return '';
-  }
-  str = str.replace(/^\s+|\s+$/g, ''); // Trim leading/trailing whitespace
-  str = str.toLowerCase();
-
-  // Remove accents, swap ñ for n, etc.
-  const from = 'àáäâèéëêìíïîòóöôùúüûñç·/_,:;';
-  const to = 'aaaaeeeeiiiioooouuuunc------';
-  for (let i = 0, l = from.length; i < l; i++) {
-    str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
-  }
-
-  str = str.replace(/[^a-z0-9 -]/g, '') // Remove invalid chars
-    .replace(/\s+/g, '-') // Collapse whitespace and replace by -
-    .replace(/-+/g, '-'); // Collapse dashes
-
-  return str;
-};
+import { slugify } from '../../utils/slugify.ts';
 import type { VideoData } from '../../utils/data.ts';
 
 export const prerender = true;
 
-// --- PERBAIKAN PENTING DI SINI ---
-// Ganti fetch dengan import langsung untuk membaca data JSON dari folder public
-// Path relatif: dari src/pages/tags/ ke public/ adalah '../../../public/'
 import processedVideosJson from '../../../public/processedVideos.json';
 const allVideos: VideoData[] = processedVideosJson as VideoData[];
-// --- AKHIR PERBAIKAN PENTING ---
 
 const uniqueTags = new Set<string>();
 
