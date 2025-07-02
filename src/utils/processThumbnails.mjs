@@ -5,7 +5,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import rawVideosData from '../data/videos.json' with { type: 'json' };
-import { slugify } from '../slugify.ts'; // Make sure this path is correct for slugify
+import { slugify } from './slugify.ts'; // Make sure this path is correct for slugify
 
 const videosData = rawVideosData;
 
