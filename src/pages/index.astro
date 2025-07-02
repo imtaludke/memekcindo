@@ -1,18 +1,14 @@
 ---
-// src/pages/index.astro
 import Layout from '../layouts/BaseLayout.astro';
 import VideoCard from '../components/VideoCard.astro';
 import { slugify } from '../utils/slugify';
 import { nama, url } from '../utils/site.ts';
-import type { VideoData } from '../utils/data.ts'; // Tetap gunakan tipe data yang sama
+import type { VideoData } from '../utils/data.ts';
 
 export const prerender = true;
 
-// !!! PERUBAHAN PENTING DI SINI !!!
-// Menggunakan fetch untuk membaca data JSON dari folder public
-const response = await fetch(`${url}/processedVideos.json`);
-const allVideos: VideoData[] = await response.json();
-// !!! AKHIR PERUBAHAN PENTING !!!
+// Import allVideos directly from the pre-processed file
+import allVideos from '../data/allVideos.ts';
 
 const videosPerPage = 40; // Number of videos per page
 
@@ -30,7 +26,6 @@ const paginatedVideos = shuffledVideos.slice(startIndex, endIndex);
 const preconnectDomains = new Set<string>();
 paginatedVideos.forEach(video => {
   try {
-    // `video.thumbnail` is now local, so no preconnect needed for it.
     if (video.embedUrl) {
       preconnectDomains.add(new URL(video.embedUrl).origin);
     }
@@ -52,7 +47,7 @@ const breadcrumbs = [
   preconnectDomains={Array.from(preconnectDomains)}
 >
   <main class="homepage" itemscope itemtype="http://schema.org/CollectionPage">
-    <nav class="breadcrumb" aria-label="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+    <nav class="breadcrumb" aria-label="Navigasi Page Utama" itemscope itemtype="http://schema.org/BreadcrumbList">
       <ol>
         {breadcrumbs.map((item, index) => (
           <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
