@@ -1,4 +1,5 @@
 ---
+// src/pages/index.astro
 import Layout from '../layouts/BaseLayout.astro';
 import VideoCard from '../components/VideoCard.astro';
 import { slugify } from '../utils/slugify';
@@ -18,9 +19,12 @@ const shuffledVideos = [...allVideos].sort(() => 0.5 - Math.random());
 // Calculate total pages
 const totalPages = Math.ceil(shuffledVideos.length / videosPerPage);
 
+// For the index.astro (homepage), the current page is always 1
+const currentPage = 1;
+
 // Get videos for the first page (homepage typically shows page 1)
-const startIndex = 0;
-const endIndex = videosPerPage;
+const startIndex = (currentPage - 1) * videosPerPage; // This will be 0 for currentPage = 1
+const endIndex = startIndex + videosPerPage;
 const paginatedVideos = shuffledVideos.slice(startIndex, endIndex);
 
 const preconnectDomains = new Set<string>();
@@ -39,11 +43,48 @@ const pageCanonicalUrl = Astro.url.href;
 const breadcrumbs = [
   { name: 'Home', url: `${url}` },
 ];
+
+// --- Pagination Logic (New/Enhanced) ---
+const maxPageLinks = 5; // Max number of page links to show (e.g., 1 ... 4 5 6 ... 10)
+let startPage = Math.max(1, currentPage - Math.floor(maxPageLinks / 2));
+let endPage = Math.min(totalPages, currentPage + Math.floor(maxPageLinks / 2));
+
+// Adjust start/end if near the beginning or end of pages
+if (endPage - startPage + 1 < maxPageLinks) {
+  startPage = Math.max(1, endPage - maxPageLinks + 1);
+}
+if (startPage === 1) {
+  endPage = Math.min(totalPages, maxPageLinks);
+}
+
+const pagesToShow: (number | 'ellipsis')[] = [];
+
+// Add "1" and ellipsis if not starting from 1
+if (startPage > 1) {
+  pagesToShow.push(1);
+  if (startPage > 2) {
+    pagesToShow.push('ellipsis');
+  }
+}
+
+// Add pages in the calculated range
+for (let i = startPage; i <= endPage; i++) {
+  pagesToShow.push(i);
+}
+
+// Add ellipsis and "last page" if not ending at totalPages
+if (endPage < totalPages) {
+  if (endPage < totalPages - 1) {
+    pagesToShow.push('ellipsis');
+  }
+  pagesToShow.push(totalPages);
+}
+// --- End Pagination Logic ---
 ---
 
 <Layout
   title={`Home | ${nama}`}
-  description={`Kumpulan video terbaru di ${nama}. Halaman ${1} dari ${totalPages}.`}
+  description={`Kumpulan video terbaru di ${nama}. Halaman ${currentPage} dari ${totalPages}.`}
   preconnectDomains={Array.from(preconnectDomains)}
 >
   <main class="homepage" itemscope itemtype="http://schema.org/CollectionPage">
@@ -79,9 +120,30 @@ const breadcrumbs = [
     )}
 
     {totalPages > 1 && (
-      <nav class="pagination" aria-label="Navigasi Page Utama">
-        {1 < totalPages && (
-          <a href={`${url}/page/2`} class="pagination-link">Berikutnya &raquo;</a>
+      <nav class="pagination" aria-label="Navigasi Halaman Utama">
+        {/* Previous button */}
+        {currentPage > 1 && (
+          <a href={`${url}/page/${currentPage - 1}`} class="pagination-link">&laquo; Sebelumnya</a>
+        )}
+
+        {/* Page numbers */}
+        {pagesToShow.map((page) => (
+          page === 'ellipsis' ? (
+            <span class="pagination-link ellipsis">...</span>
+          ) : (
+            <a
+              href={page === 1 ? `${url}` : `${url}/page/${page}`} // Link for page 1 goes to base URL
+              class={`pagination-link ${page === currentPage ? 'active' : ''}`}
+              aria-current={page === currentPage ? 'page' : undefined}
+            >
+              {page}
+            </a>
+          )
+        ))}
+
+        {/* Next button */}
+        {currentPage < totalPages && (
+          <a href={`${url}/page/${currentPage + 1}`} class="pagination-link">Berikutnya &raquo;</a>
         )}
       </nav>
     )}
