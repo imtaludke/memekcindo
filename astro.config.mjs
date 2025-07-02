@@ -1,3 +1,4 @@
+// astro.config.mjs
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 import sitemap from '@astrojs/sitemap';
@@ -12,7 +13,7 @@ export default defineConfig({
       priority: 1,
     }),
   ],
-      vite: {
+  vite: {
     ssr: {
       noExternal: ['node:fs', 'node:path'],
     },
