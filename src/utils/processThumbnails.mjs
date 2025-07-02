@@ -2,7 +2,7 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } = from 'node:url';
+import { fileURLToPath } from 'node:url';
 import sharp from 'sharp';
 import rawVideosData from '../data/videos.json' with { type: 'json' };
 
