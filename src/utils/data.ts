@@ -13,6 +13,9 @@ export interface VideoData {
   previewUrl?: string;
 }
 export async function getAllVideos(): Promise<VideoData[]> {
-  console.log(`[getAllVideos] Data video dimuat. Total video: ${videosData.length}`);
-  return videosData as VideoData[];
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve(mockVideos);
+    }, 100);
+  });
 }
