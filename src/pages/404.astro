@@ -14,6 +14,7 @@ const allVideos: VideoData[] = processedVideosJson as VideoData[];
 // !!! AKHIR PERUBAHAN PENTING !!!
 
 export const prerender = true; // Halaman 404 biasanya di-prerender
+const preconnectDomains = Array.from(allDomains);
 
 
 const breadcrumbs = [
