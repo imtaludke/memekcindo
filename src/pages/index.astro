@@ -136,7 +136,7 @@ const breadcrumbs = [
         <>
           <h2 class="section-title">Video Pilihan</h2>
           <div class="video-grid">
-            {allRandomVideos.map((video) => ( {/* Menggunakan allRandomVideos */}
+            {allRandomVideos.map((video) =>
               <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
             ))}
           </div>
