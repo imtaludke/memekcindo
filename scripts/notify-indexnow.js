@@ -3,6 +3,7 @@ import fetch from 'node-fetch'; // Pastikan 'node-fetch' terinstall: npm install
 import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import 'dotenv/config';
 
 // Dapatkan __dirname di ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -24,9 +25,7 @@ function slugify(text) {
 // --- Akhir Fungsi slugify ---
 
 // --- Konfigurasi Anda ---
-const YOUR_DOMAIN = 'https://memekcindo.pages.dev'; // Ganti dengan domain Anda yang sebenarnya
-const API_KEY_NAME = 'af3fca12-7873-411d-a6f0-dd59857f59a5'; // Ganti dengan GUID Anda
-const API_KEY_LOCATION = `${YOUR_DOMAIN}/${API_KEY_NAME}.txt`;
+const API_KEY_LOCATION = `${PUBLIC_SITE_URL}/${INDEXNOW_API_KEY_NAME}.txt`;
 const INDEXNOW_ENDPOINT = 'https://api.indexnow.org/IndexNow';
 // --- Akhir Konfigurasi ---
 
@@ -50,7 +49,7 @@ async function getAllVideoUrls() {
 
         return allVideos.map(video => {
             const slug = slugify(video.title || 'untitled-video'); // Tambahkan fallback untuk judul
-            return `${YOUR_DOMAIN}/${slug}-${video.id}/`;
+            return `${PUBLIC_SITE_URL}/${slug}-${video.id}/`;
         });
     } catch (error) {
         console.error('Gagal memuat atau memproses videos.json:', error);
@@ -72,8 +71,8 @@ async function sendToIndexNow(urlsToSend) {
         const chunk = urlsToSend.slice(i, i + chunkSize);
 
         const payload = {
-            host: new URL(YOUR_DOMAIN).hostname,
-            key: API_KEY_NAME,
+            host: new URL(PUBLIC_SITE_URL).hostname,
+            key: INDEXNOW_API_KEY_NAME,
             keyLocation: API_KEY_LOCATION,
             urlList: chunk,
         };
