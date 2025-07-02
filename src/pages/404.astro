@@ -1,14 +1,10 @@
 ---
 // src/pages/404.astro
 import Layout from '../layouts/BaseLayout.astro';
-import VideoCard from '../components/VideoCard.astro';
 import { slugify } from '../utils/slugify';
 import { nama, url, desk } from '../utils/site.ts';
-import type { VideoData } from '../utils/data'; // Pastikan tipe ini masih diimpor
 
 export const prerender = true; // Halaman 404 biasanya di-prerender
-const preconnectDomains = Array.from(allDomains);
-
 
 const breadcrumbs = [
   { name: 'Home', url: `${url}` },
@@ -19,7 +15,6 @@ const breadcrumbs = [
 <Layout
   title={`404 - Halaman Tidak Ditemukan | ${nama}`}
   description={`Maaf, halaman yang Anda cari tidak dapat ditemukan di ${nama}.`}
-  preconnectDomains={preconnectDomains}
   siteName={nama}
   siteUrl={url}
 >
