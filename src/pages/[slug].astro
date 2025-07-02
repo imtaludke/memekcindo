@@ -220,7 +220,6 @@ const videoTags = typeof video.tags === 'string' && video.tags.length > 0
         allowfullscreen
         loading="eager"
         width="100%"
-        height="450"
         title={video.title}
       ></iframe>
     </div>
@@ -238,7 +237,7 @@ const videoTags = typeof video.tags === 'string' && video.tags.length > 0
 
     {videoTags.length > 0 && (
       <section class="video-tags-section">
-        <section>
+        <h2 class="section-title">Tags:</h2>
         <div class="tags-list">
           {videoTags.map(tag => (
             <a href={`${url}/video/${slugify(tag)}/1`} class="tag-chip">
@@ -267,7 +266,7 @@ const videoTags = typeof video.tags === 'string' && video.tags.length > 0
           <ins id="1055940" data-width="308" data-height="298"></ins>
           <script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1055940});</script>
         </div>
-        <section class="section-title">
+        <h2 class="section-title">Rekomendasi Video Lainnya</h2>
         <div class="video-grid">
           {randomVideos.map((randomVideo) => (
             <VideoCard video={randomVideo} videoDetailPath={`/${slugify(randomVideo.title)}-${randomVideo.id}/`} headingLevel="h3" />
