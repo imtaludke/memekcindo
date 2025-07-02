@@ -75,7 +75,7 @@ const breadcrumbs = [
 ---
 
 <Layout
-  title={`${categoryName} Videos (Page ${currentPage}) | ${nama}`}
+  title={`${categoryName} Page ${currentPage} | ${nama}`}
   description={`Halaman ${currentPage} dari video kategori ${categoryName} di ${nama}.`}
   preconnectDomains={Array.from(preconnectDomains)}
   canonicalUrl={pageCanonicalUrl}
@@ -119,9 +119,7 @@ const breadcrumbs = [
             href={`${currentUrl}/category/${slug}/${currentPage - 1}`}
             class="pagination-link pagination-prev"
             rel="prev"
-          >
-            &laquo; Sebelumnya
-          </a>
+          >&laquo; Sebelumnya</a>
         )}
         {Array.from({ length: totalPagesInCategory }, (_, i) => (
           <a
@@ -129,18 +127,14 @@ const breadcrumbs = [
             href={`${currentUrl}/category/${slug}/${i + 1}`}
             class={`pagination-link ${currentPage === i + 1 ? 'active' : ''}`}
             aria-current={currentPage === i + 1 ? 'page' : undefined}
-          >
-            {i + 1}
-          </a>
+          >{i + 1}</a>
         ))}
         {currentPage < totalPagesInCategory && (
           <a
             href={`${currentUrl}/category/${slug}/${currentPage + 1}`}
             class="pagination-link pagination-next"
             rel="next"
-          >
-            Berikutnya &raquo;
-          </a>
+          >Berikutnya &raquo;</a>
         )}
       </nav>
     )}
