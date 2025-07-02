@@ -15,26 +15,6 @@ const allVideos: VideoData[] = processedVideosJson as VideoData[];
 
 export const prerender = true; // Halaman 404 biasanya di-prerender
 
-// Ambil beberapa video acak untuk ditampilkan
-const numberOfRandomVideos = 16;
-const randomVideos: VideoData[] = allVideos
-  .sort(() => 0.5 - Math.random())
-  .slice(0, numberOfRandomVideos);
-
-const allDomains = new Set<string>();
-
-randomVideos.forEach(video => {
-  try {
-    // `video.thumbnail` sekarang path lokal, tidak perlu preconnect untuk thumbnail
-    if (video.embedUrl) {
-      allDomains.add(new URL(video.embedUrl).origin);
-    }
-  } catch (e) {
-    console.error(`[ERROR] URL embed video tidak valid untuk video ID ${video.id} (404 random videos):`, e);
-  }
-});
-
-const preconnectDomains = Array.from(allDomains);
 
 const breadcrumbs = [
   { name: 'Home', url: `${url}` },
@@ -83,16 +63,6 @@ const breadcrumbs = [
       </div>
     </div>
 
-//{randomVideos.length > 0 && (
-  //    <section class="random-videos-section">
-    //    <h2 class="section-title">Video Pilihan Lainnya</h2>
-       // <div class="video-grid">
-//          {randomVideos.map((video) => (
-  //          <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}/`} />
-        //  ))}
-    //    </div>
-      //</section>
-   // )}
   </main>
 </Layout>
 
