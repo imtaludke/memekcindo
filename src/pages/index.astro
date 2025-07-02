@@ -4,7 +4,6 @@ import Layout from '../layouts/BaseLayout.astro';
 import VideoCard from '../components/VideoCard.astro';
 import { slugify } from '../utils/slugify';
 import { getAllVideos, type VideoData } from '../utils/data';
-import { nama, desk, url, terbit } from '../utils/site.ts';
 
 export const prerender = true;
 
@@ -83,17 +82,17 @@ Object.values(finalVideosByCategory).flat().forEach(video => {
 const preconnectDomains = Array.from(allDomains);
 
 const breadcrumbs = [
-  { name: 'Home', url: `${url}` },
+  { name: 'Home', url: `${currentUrl}` },
 ];
 
-const currentUrl = url;
-const siteName = nama;
-const siteDescription = desk;
+const currentUrl = import.meta.env.PUBLIC_SITE_URL;
+const siteName = import.meta.env.PUBLIC_SITE_NAME;
+const siteDescription = import.meta.env.PUBLIC_SITE_DESCRIPTION;
 
 ---
 
 <Layout
-  title={`${nama} - Video Bokep Indo Terbaru`}
+  title={`${siteName} - Video Bokep Indo Terbaru`}
   description={siteDescription}
   preconnectDomains={preconnectDomains}
   siteName={siteName}
@@ -102,8 +101,8 @@ const siteDescription = desk;
 
   <main class="home-page" itemscope itemtype="http://schema.org/WebPage">
     <meta itemprop="url" content={currentUrl} />
-    <meta itemprop="name" content={`${nama} - Video Bokep Indo Terbaru`} />
-    <meta itemprop="description" content={desk} />
+    <meta itemprop="name" content={`${siteName} - Video Bokep Indo Terbaru`} />
+    <meta itemprop="description" content={siteDescription} />
     <div itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
       <meta itemprop="name" content={siteName} />
       <div itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
@@ -114,8 +113,8 @@ const siteDescription = desk;
     <meta itemprop="dateModified" content={new Date().toISOString()} />
 
     <section class="hero-section">
-      <h1 itemprop="headline">Selamat Datang di {nama}!</h1>
-      <p itemprop="description">{desk} Tonton Sekarang Juga!</p>
+      <h1 itemprop="headline">Selamat Datang di {siteName}!</h1>
+      <p itemprop="description">{siteDescription} Tonton Sekarang Juga!</p>
     </section>
 
     {/* Bagian "Video Pilihan" (TANPA PAGINASI) */}
