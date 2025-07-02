@@ -2,15 +2,15 @@
 // src/pages/category/index.astro
 import Layout from '../../layouts/BaseLayout.astro';
 import { nama, url } from '../../utils/site.ts';
-import type { VideoData } from '../../utils/data'; // Tetap gunakan tipe VideoData
-import { slugify } from '../../utils/slugify'; // Pindahkan ke sini untuk kerapian
+import type { VideoData } from '../../utils/data';
+import { slugify } from '../../utils/slugify';
 
 export const prerender = true;
 
 // --- PERBAIKAN PENTING DI SINI ---
 // Ganti fetch dengan import langsung untuk membaca data JSON dari folder public
-// Path: dari src/pages/category/ ke public/ adalah '../../public/'
-import processedVideosJson from '../public/processedVideos.json';
+// Path yang benar: dari src/pages/category/ ke public/ adalah '../../public/'
+import processedVideosJson from '../../public/processedVideos.json';
 const allVideos: VideoData[] = processedVideosJson as VideoData[];
 // --- AKHIR PERBAIKAN PENTING ---
 
