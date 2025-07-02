@@ -3,18 +3,16 @@
 import { slugify } from '../utils/slugify';
 import { url } from '../utils/site.ts';
 
-// Hapus: import { Image } from 'astro:assets';
-
 interface Props {
   video: {
     id: string;
     title: string;
     thumbnail: string;
-    thumbnailWidth?: number; // Dipastikan ada dari processedVideos.json
-    thumbnailHeight?: number; // Dipastikan ada dari processedVideos.json
+    thumbnailWidth?: number;
+    thumbnailHeight?: number;
     category: string;
     duration?: number;
-    views?: number;
+    // Removed: views: number;
     // Add any other properties from VideoData that VideoCard might use
   };
   videoDetailPath: string;
@@ -31,17 +29,8 @@ function formatDuration(seconds: number): string {
 
 const formattedDuration = formatDuration(video.duration);
 
-// Format views for readability
-function formatViews(views: number): string {
-    if (views >= 1000000) {
-        return (views / 1000000).toFixed(1) + 'M views';
-    }
-    if (views >= 1000) {
-        return (views / 1000).toFixed(1) + 'K views';
-    }
-    return views.toString() + ' views';
-}
-const formattedViews = formatViews(video.views);
+// Removed: formatViews function and its usage
+// const formattedViews = formatViews(video.views);
 ---
 
 <div class="video-card" itemprop="video" itemscope itemtype="http://schema.org/VideoObject">
@@ -69,7 +58,7 @@ const formattedViews = formatViews(video.views);
       <a href={`${url}${videoDetailPath}`}>{video.title}</a>
     </h3>
     <p class="video-meta">
-      <span class="video-views" itemprop="interactionCount">{formattedViews}</span>
+      {/* Removed: <span class="video-views" itemprop="interactionCount">{formattedViews}</span> */}
       <span class="video-category">
         <a href={`${url}/category/${slugify(video.category)}/1`} itemprop="isPartOf">
           {video.category}
@@ -154,7 +143,8 @@ const formattedViews = formatViews(video.views);
     font-size: 0.85em;
     color: var(--text-color-light);
     display: flex;
-    justify-content: space-between;
+    /* Changed to flex-end to push category to the right */
+    justify-content: flex-end; 
     margin-top: auto; /* Push to bottom if content grows */
   }
 
