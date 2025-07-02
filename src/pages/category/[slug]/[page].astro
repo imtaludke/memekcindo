@@ -63,13 +63,14 @@ paginatedVideos.forEach(video => {
     console.error(`Invalid URL for video ID "${video.id}" (category page):`, e);
   }
 });
+const currentUrl = import.meta.env.PUBLIC_SITE_URL;
 
 const pageCanonicalUrl = new URL(Astro.url.pathname, url).href;
 
 const breadcrumbs = [
-  { name: 'Home', url: PUBLIC_SITE_URL },
-  { name: 'Category', url: `${url}/category/` },
-  { name: `${categoryName} Page ${currentPage}`, url: `${url}/category/${slug}/${currentPage}/` },
+  { name: 'Home', url: `${currentUrl}` },
+  { name: 'Category', url: `${currentUrl}/category/` },
+  { name: `${categoryName} Page ${currentPage}` },
 ];
 ---
 
@@ -115,7 +116,7 @@ const breadcrumbs = [
       <nav class="pagination" aria-label={`Navigasi Kategori ${categoryName}`}>
         {currentPage > 1 && (
           <a
-            href={`${url}/category/${slug}/${currentPage - 1}`}
+            href={`${currentUrl}/category/${slug}/${currentPage - 1}`}
             class="pagination-link pagination-prev"
             rel="prev"
           >
@@ -125,7 +126,7 @@ const breadcrumbs = [
         {Array.from({ length: totalPagesInCategory }, (_, i) => (
           <a
             key={i + 1}
-            href={`${url}/category/${slug}/${i + 1}`}
+            href={`${currentUrl}/category/${slug}/${i + 1}`}
             class={`pagination-link ${currentPage === i + 1 ? 'active' : ''}`}
             aria-current={currentPage === i + 1 ? 'page' : undefined}
           >
@@ -134,7 +135,7 @@ const breadcrumbs = [
         ))}
         {currentPage < totalPagesInCategory && (
           <a
-            href={`${url}/category/${slug}/${currentPage + 1}`}
+            href={`${currentUrl}/category/${slug}/${currentPage + 1}`}
             class="pagination-link pagination-next"
             rel="next"
           >
