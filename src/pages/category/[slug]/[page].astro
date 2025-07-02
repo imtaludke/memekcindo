@@ -67,9 +67,9 @@ paginatedVideos.forEach(video => {
 const pageCanonicalUrl = new URL(Astro.url.pathname, url).href;
 
 const breadcrumbs = [
-  { name: 'Home', url: `${url}` },
+  { name: 'Home', url: PUBLIC_SITE_URL },
   { name: 'Category', url: `${url}/category/` },
-  { name: `categoryName Page ${currentPage}`, url: `${url}/category/${slug}/${currentPage}/` },
+  { name: `${categoryName} Page ${currentPage}`, url: `${url}/category/${slug}/${currentPage}/` },
 ];
 ---
 
