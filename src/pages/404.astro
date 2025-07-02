@@ -88,7 +88,7 @@ const breadcrumbs = [
         <h2 class="section-title">Video Pilihan Lainnya</h2>
         <div class="video-grid">
           {randomVideos.map((video) => (
-            <VideoCard video={video} videoDetailPath={`${url}/${slugify(video.title)}-${video.id}/`} />
+            <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}/`} />
           ))}
         </div>
       </section>
