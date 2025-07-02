@@ -5,11 +5,15 @@ import { slugify } from '../utils/slugify';
 import { nama, url, terbit } from '../utils/site.ts';
 import type { VideoData } from '../utils/data';
 
+import fs from 'node:fs';
+import path from 'node:path';
+
 export const prerender = true;
 
 export async function getStaticPaths() {
-  import processedVideosJson from '../../../public/processedVideos.json';
-  const allVideos: VideoData[] = processedVideosJson as VideoData[];
+  const filePath = path.resolve(process.cwd(), 'public', 'processedVideos.json');
+  const fileContent = fs.readFileSync(filePath, 'utf-8');
+  const allVideos: VideoData[] = JSON.parse(fileContent) as VideoData[];
 
   return allVideos.map(video => ({
     params: { slug: `${slugify(video.title)}-${video.id}` },
