@@ -8,6 +8,7 @@ import rawVideosData from '../data/videos.json' with { type: 'json' }; // Ensure
 
 // Extract the videos array. Adjust if your videos.json is a direct array.
 const videosData = rawVideosData.videos; 
+const videosData = rawVideosData;
 
 // You will likely need to adjust the path to the 'public' directory
 // depending on where your script is located relative to the project root.
