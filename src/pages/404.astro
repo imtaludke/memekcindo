@@ -83,15 +83,15 @@ const breadcrumbs = [
       </div>
     </div>
 
-    {randomVideos.length > 0 && (
-      <section class="random-videos-section">
-        <h2 class="section-title">Video Pilihan Lainnya</h2>
-        <div class="video-grid">
-          {randomVideos.map((video) => (
-            <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}/`} />
-          ))}
-        </div>
-      </section>
+//    {randomVideos.length > 0 && (
+  //    <section class="random-videos-section">
+    //    <h2 class="section-title">Video Pilihan Lainnya</h2>
+       // <div class="video-grid">
+//          {randomVideos.map((video) => (
+  //          <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}/`} />
+        //  ))}
+    //    </div>
+      //</section>
     )}
   </main>
 </Layout>
