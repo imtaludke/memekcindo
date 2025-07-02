@@ -11,6 +11,7 @@ export default defineConfig({
     sitemap({
       changefreq: 'daily',
       priority: 1,
+      filename: 'sitemap.xml',
     }),
   ],
   vite: {
