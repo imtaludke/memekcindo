@@ -1,5 +1,5 @@
 // src/utils/data.ts
-import videosData from '../src/data/videos.json';
+import videosData from '../../src/data/videos.json';
 
 export interface VideoData {
   id: string;
