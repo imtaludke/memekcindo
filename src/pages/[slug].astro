@@ -220,7 +220,7 @@ const videoTags = typeof video.tags === 'string' && video.tags.length > 0
         allowfullscreen
         loading="eager"
         width="100%"
-        height="300"
+        height="450"
         title={video.title}
       ></iframe>
     </div>
@@ -238,10 +238,10 @@ const videoTags = typeof video.tags === 'string' && video.tags.length > 0
 
     {videoTags.length > 0 && (
       <section class="video-tags-section">
-        <h2 class="section-title">Tags:</h2>
+        <section>
         <div class="tags-list">
           {videoTags.map(tag => (
-            <a href={`/video/${slugify(tag)}/1`} class="tag-chip">
+            <a href={`${url}/video/${slugify(tag)}/1`} class="tag-chip">
               {tag}
             </a>
           ))}
@@ -267,7 +267,7 @@ const videoTags = typeof video.tags === 'string' && video.tags.length > 0
           <ins id="1055940" data-width="308" data-height="298"></ins>
           <script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1055940});</script>
         </div>
-        <h2 class="section-title">Rekomendasi Video Lainnya</h2>
+        <section class="section-title">
         <div class="video-grid">
           {randomVideos.map((randomVideo) => (
             <VideoCard video={randomVideo} videoDetailPath={`/${slugify(randomVideo.title)}-${randomVideo.id}/`} headingLevel="h3" />
@@ -277,138 +277,3 @@ const videoTags = typeof video.tags === 'string' && video.tags.length > 0
     )}
   </main>
 </Layout>
-
-<style>
-  .video-tags-section {
-    margin-top: calc(var(--spacing-unit) * 1.5);
-    margin-bottom: calc(var(--spacing-unit) * 1.5);
-    padding: var(--spacing-unit);
-    background-color: var(--background-color-card);
-    border-radius: var(--border-radius-medium);
-    border: 1px solid var(--border-color);
-  }
-
-  .video-tags-section .section-title {
-    font-size: 1.2em;
-    margin-bottom: var(--spacing-unit-small);
-    color: var(--text-color);
-  }
-
-  .tags-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: calc(var(--spacing-unit) / 2);
-  }
-
-  .tag-chip {
-    display: inline-block;
-    background-color: var(--primary-color-light);
-    color: var(--primary-color-dark);
-    padding: 0.4em 0.8em;
-    border-radius: 4px;
-    text-decoration: none;
-    font-size: 0.9em;
-    transition: background-color 0.2s ease, transform 0.2s ease;
-    border: 1px solid var(--primary-color-dark);
-  }
-
-  .tag-chip:hover {
-    background-color: var(--primary-color);
-    color: white;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-light);
-  }
-
-  .video-detail-page {
-    max-width: var(--max-width-content);
-    margin: 0 auto;
-    padding: var(--spacing-unit);
-  }
-
-  .breadcrumb {
-    margin-bottom: var(--spacing-unit);
-  }
-
-  .breadcrumb ol {
-    display: flex;
-    flex-wrap: wrap;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    font-size: 0.9em;
-  }
-
-  .breadcrumb li {
-    display: flex;
-    align-items: center;
-  }
-
-  .breadcrumb a {
-    color: var(--link-color);
-    text-decoration: none;
-  }
-
-  .breadcrumb a:hover {
-    text-decoration: underline;
-  }
-
-  .breadcrumb .separator {
-    margin: 0 0.5em;
-    color: var(--text-color-light);
-  }
-
-  .video-player-container {
-    position: relative;
-    padding-bottom: 56.25%;
-    height: 0;
-    overflow: hidden;
-    margin-bottom: var(--spacing-unit);
-    border-radius: var(--border-radius-medium);
-    box-shadow: var(--shadow-medium);
-  }
-
-  .video-player-container iframe {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: var(--border-radius-medium);
-  }
-
-  .video-title {
-    font-size: 2em;
-    color: var(--heading-color);
-    margin-bottom: var(--spacing-unit-small);
-    text-align: center;
-  }
-
-  .video-description {
-    font-size: 1em;
-    line-height: 1.6;
-    color: var(--text-color);
-    margin-bottom: calc(var(--spacing-unit) * 1.5);
-    background-color: var(--background-color-card);
-    padding: var(--spacing-unit);
-    border-radius: var(--border-radius-medium);
-    border: 1px solid var(--border-color);
-  }
-
-  .juicyads-ad-container {
-    margin-bottom: var(--spacing-unit);
-  }
-
-  .section-title {
-    font-size: 1.5em;
-    color: var(--heading-color);
-    margin-top: calc(var(--spacing-unit) * 2);
-    margin-bottom: var(--spacing-unit);
-    text-align: center;
-  }
-
-  .video-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: var(--spacing-unit);
-  }
-</style>
