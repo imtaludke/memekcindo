@@ -2,18 +2,15 @@
 // src/pages/404.astro
 import Layout from '../layouts/BaseLayout.astro';
 import VideoCard from '../components/VideoCard.astro';
-// !!! PERUBAHAN DI SINI: HANYA IMPORT type VideoData !!!
-import { type VideoData } from '../utils/data'; // getAllVideos SUDAH DIHAPUS DARI SINI
+import { type VideoData } from '../utils/data';
 import { slugify } from '../utils/slugify';
 import { nama, url, desk } from '../utils/site.ts';
 
-export const prerender = true; // Halaman 404 biasanya di-prerender
+export const prerender = true;
 
-// Menggunakan fetch untuk membaca data JSON dari folder public
 const response = await fetch(`${url}/processedVideos.json`);
 const allVideos: VideoData[] = await response.json();
 
-// Ambil beberapa video acak untuk ditampilkan
 const numberOfRandomVideos = 16;
 const randomVideos: VideoData[] = allVideos
   .sort(() => 0.5 - Math.random())
