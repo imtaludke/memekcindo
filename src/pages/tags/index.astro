@@ -3,20 +3,38 @@
 // Halaman indeks yang menampilkan semua tags unik
 
 import Layout from '../../layouts/BaseLayout.astro';
-// !!! PERUBAHAN PENTING DI SINI !!!
-// Hapus import getAllVideos dan ganti dengan fetch untuk processedVideos.json
 import { nama, url } from '../../utils/site.ts';
-import { slugify } from '../../utils/slugify.ts';
-import type { VideoData } from '../../utils/data.ts'; // Pastikan tipe ini masih diimpor
-// !!! AKHIR PERUBAHAN PENTING !!!
+import { slugify } => {
+  // Pastikan slugify selalu mengembalikan string
+  if (typeof str !== 'string') {
+    return '';
+  }
+  str = str.replace(/^\s+|\s+$/g, ''); // Trim leading/trailing whitespace
+  str = str.toLowerCase();
+
+  // Remove accents, swap ñ for n, etc.
+  const from = 'àáäâèéëêìíïîòóöôùúüûñç·/_,:;';
+  const to = 'aaaaeeeeiiiioooouuuunc------';
+  for (let i = 0, l = from.length; i < l; i++) {
+    str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+  }
+
+  str = str.replace(/[^a-z0-9 -]/g, '') // Remove invalid chars
+    .replace(/\s+/g, '-') // Collapse whitespace and replace by -
+    .replace(/-+/g, '-'); // Collapse dashes
+
+  return str;
+};
+import type { VideoData } from '../../utils/data.ts';
 
 export const prerender = true;
 
-// Ambil semua tags unik saat build time
-// !!! PERUBAHAN PENTING DI SINI !!!
-const response = await fetch(`${url}/processedVideos.json`);
-const allVideos: VideoData[] = await response.json();
-// !!! AKHIR PERUBAHAN PENTING !!!
+// --- PERBAIKAN PENTING DI SINI ---
+// Ganti fetch dengan import langsung untuk membaca data JSON dari folder public
+// Path relatif: dari src/pages/tags/ ke public/ adalah '../../../public/'
+import processedVideosJson from '../../../public/processedVideos.json';
+const allVideos: VideoData[] = processedVideosJson as VideoData[];
+// --- AKHIR PERBAIKAN PENTING ---
 
 const uniqueTags = new Set<string>();
 
@@ -25,13 +43,12 @@ allVideos.forEach(video => {
     video.tags.split(',').forEach(tag => {
       const trimmedTag = tag.trim();
       if (trimmedTag.length > 0) {
-        uniqueTags.add(trimmedTag); // Simpan tag asli (tanpa lowercase di sini, agar display tetap sesuai aslinya)
+        uniqueTags.add(trimmedTag);
       }
     });
   }
 });
 
-// Konversi Set ke Array dan urutkan secara alfabetis
 const sortedTags = Array.from(uniqueTags).sort((a, b) => a.localeCompare(b));
 
 const breadcrumbs = [
@@ -39,10 +56,7 @@ const breadcrumbs = [
   { name: 'Semua Tags', url: `${url}/tags` },
 ];
 
-// Anda bisa menghitung preconnect domains jika Anda menampilkan sesuatu yang memerlukan koneksi eksternal
-// Misalnya, jika ada gambar atau ikon di halaman tags ini
 let preconnectDomains: string[] = [];
-// ... (logika opsional untuk preconnectDomains jika ada)
 ---
 
 <Layout
@@ -90,7 +104,6 @@ let preconnectDomains: string[] = [];
 </Layout>
 
 <style>
-  /* Gaya untuk halaman indeks tags */
   .tags-index-page {
     max-width: var(--max-width-content);
     margin: 0 auto;
@@ -106,10 +119,10 @@ let preconnectDomains: string[] = [];
 
   .tags-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Sesuaikan ukuran card tag */
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: var(--spacing-unit);
     padding: var(--spacing-unit);
-    justify-content: center; /* Pusatkan jika tidak memenuhi grid */
+    justify-content: center;
   }
 
   .tag-card {
@@ -126,7 +139,7 @@ let preconnectDomains: string[] = [];
     font-size: 1.1em;
     text-align: center;
     transition: all 0.2s ease-in-out;
-    min-height: 80px; /* Tinggi minimal untuk card tag */
+    min-height: 80px;
   }
 
   .tag-card:hover {
