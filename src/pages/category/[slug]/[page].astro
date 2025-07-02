@@ -1,5 +1,4 @@
 ---
-// src/pages/category/[slug]/[page].astro
 import Layout from '../../../layouts/BaseLayout.astro';
 import VideoCard from '../../../components/VideoCard.astro';
 import { slugify } from '../../../utils/slugify';
@@ -8,22 +7,16 @@ import type { VideoData } from '../../../utils/data.ts';
 
 export const prerender = true;
 
-// Menggunakan fetch untuk membaca data JSON dari folder public
-const response = await fetch(`${url}/processedVideos.json`);
-const allVideos: VideoData[] = await response.json(); // Variabel allVideos ini akan digunakan oleh logika di luar getStaticPaths
+import processedVideosJson from '../../../../public/processedVideos.json';
+const allVideos: VideoData[] = processedVideosJson as VideoData[];
 
-
-// Get static paths for all categories and pages
-export async function getStaticPaths() {
-  // --- PERUBAHAN UTAMA DI SINI ---
-  // Impor `processedVideos.json` lagi di dalam `getStaticPaths`
-  // Ini adalah cara Astro memastikan data tersedia saat build time untuk getStaticPaths.
-  const allVideosForPaths: VideoData[] = (await import('../../../../public/processedVideos.json')).default as VideoData[];
-  // --- AKHIR PERUBAHAN UTAMA ---
 const videosPerPage = 40;
 
+export async function getStaticPaths() {
+  const allVideosForPaths: VideoData[] = (await import('../../../../public/processedVideos.json')).default as VideoData[];
+  const VIDEOS_PER_PAGE_FOR_PATHS = 40;
+
   const categoryData: { [key: string]: number } = {};
-  // Gunakan `allVideosForPaths` di sini
   allVideosForPaths.forEach(video => {
     if (!categoryData[video.category]) {
       categoryData[video.category] = 0;
@@ -33,12 +26,12 @@ const videosPerPage = 40;
 
   const paths = Object.keys(categoryData).flatMap(categoryName => {
     const totalVideosInCategory = categoryData[categoryName];
-    const totalPagesInCategory = Math.ceil(totalVideosInCategory / videosPerPage);
+    const totalPagesInCategory = Math.ceil(totalVideosInCategory / VIDEOS_PER_PAGE_FOR_PATHS);
     const categorySlug = slugify(categoryName);
 
     return Array.from({ length: totalPagesInCategory }, (_, i) => ({
       params: { slug: categorySlug, page: (i + 1).toString() },
-      props: { categoryName: categoryName } // Pass category name as prop
+      props: { categoryName: categoryName }
     }));
   });
 
@@ -47,15 +40,12 @@ const videosPerPage = 40;
 
 const { slug, page } = Astro.params;
 const currentPage = parseInt(page as string);
-const { categoryName } = Astro.props; // Retrieve category name from props
+const { categoryName } = Astro.props;
 
-// Filter videos by category
 const categoryVideos = allVideos.filter(video => slugify(video.category) === slug);
 
-// Sort videos (e.g., by title, or most recent, etc.)
 const sortedCategoryVideos = [...categoryVideos].sort((a, b) => a.title.localeCompare(b.title));
 
-// Paginate videos
 const startIndex = (currentPage - 1) * videosPerPage;
 const endIndex = startIndex + videosPerPage;
 const paginatedVideos = sortedCategoryVideos.slice(startIndex, endIndex);
@@ -63,7 +53,6 @@ const paginatedVideos = sortedCategoryVideos.slice(startIndex, endIndex);
 const totalVideosInCategory = sortedCategoryVideos.length;
 const totalPagesInCategory = Math.ceil(totalVideosInCategory / videosPerPage);
 
-// Preconnect domains for external embeds
 const preconnectDomains = new Set<string>();
 paginatedVideos.forEach(video => {
   try {
@@ -75,7 +64,7 @@ paginatedVideos.forEach(video => {
   }
 });
 
-const pageCanonicalUrl = new URL(Astro.url.pathname, url).href; // Construct canonical URL
+const pageCanonicalUrl = new URL(Astro.url.pathname, url).href;
 
 const breadcrumbs = [
   { name: 'Home', url: `${url}` },
