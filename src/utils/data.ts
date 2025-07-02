@@ -2,7 +2,7 @@ export interface VideoData {
   id: string;
   title: string;
   description?: string;
-  category: string;
+  category?: string;
   thumbnail: string;
   thumbnailWidth?: number;
   thumbnailHeight?: number;
@@ -12,6 +12,7 @@ export interface VideoData {
   tags?: string;
   previewUrl?: string;
 }
+
 export async function getAllVideos(): Promise<VideoData[]> {
   return new Promise(resolve => {
     setTimeout(() => {
