@@ -1,14 +1,18 @@
 export interface VideoData {
   id: string;
   title: string;
-  description: string;
+  description?: string;
   category: string;
-  thumbnail: string; // Ini sekarang akan menjadi path lokal (misal: /optimized-thumbnails/id.webp)
-  thumbnailWidth?: number; // Disarankan untuk menambahkan ini jika Anda ingin data yang lebih akurat
-  thumbnailHeight?: number; // Disarankan untuk menambahkan ini jika Anda ingin data yang lebih akurat
+  thumbnail: string;
+  thumbnailWidth?: number;
+  thumbnailHeight?: number;
   datePublished?: string;
   dateModified?: string;
   embedUrl: string;
-  tags: string; // Tipe data diubah menjadi string
+  tags?: string;
   previewUrl?: string;
+}
+export async function getAllVideos(): Promise<VideoData[]> {
+  console.log(`[getAllVideos] Data video dimuat. Total video: ${videosData.length}`);
+  return videosData as VideoData[];
 }
