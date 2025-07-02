@@ -2,10 +2,23 @@
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath } = from 'node:url';
 import sharp from 'sharp';
 import rawVideosData from '../data/videos.json' with { type: 'json' };
-import { slugify } from './slugify.ts'; // Make sure this path is correct for slugify
+
+// --- FUNGSI SLUGIFY DITEMPATKAN LANGSUNG DI SINI ---
+function slugify(text) {
+  return text
+    .toString()
+    .normalize('NFD') // Pecah karakter beraksen menjadi dasar + diakritik
+    .replace(/[\u0300-\u036f]/g, '') // Hapus diakritik
+    .toLowerCase() // Ubah ke huruf kecil
+    .trim() // Hapus spasi di awal/akhir
+    .replace(/\s+/g, '-') // Ganti spasi dengan tanda hubung
+    .replace(/[^\w-]+/g, '') // Hapus semua karakter non-kata
+    .replace(/--+/g, '-'); // Ganti beberapa tanda hubung dengan satu
+}
+// --- AKHIR FUNGSI SLUGIFY ---
 
 const videosData = rawVideosData;
 
@@ -30,9 +43,8 @@ async function processThumbnails() {
   const processedVideos = [];
 
   for (const video of videosData) {
-    // Generate a consistent and descriptive file name for the optimized thumbnail
     const videoSlug = slugify(video.title || 'untitled-video');
-    const thumbnailFileName = `${videoSlug}-${video.id}.webp`; // Format: judul-slug-id.webp
+    const thumbnailFileName = `${videoSlug}-${video.id}.webp`;
     
     const outputPath = path.join(optimizedThumbnailsDir, thumbnailFileName);
     const relativeThumbnailPath = `/optimized-thumbnails/${thumbnailFileName}`;
