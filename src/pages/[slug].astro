@@ -5,24 +5,20 @@ import { slugify } from '../utils/slugify';
 import { nama, url, terbit } from '../utils/site.ts';
 import type { VideoData } from '../utils/data';
 
-import fs from 'node:fs';
-import path from 'node:path';
+import processedVideosJson from '../../public/processedVideos.json';
+const allVideos: VideoData[] = processedVideosJson as VideoData[];
 
 export const prerender = true;
 
 export async function getStaticPaths() {
-  const filePath = path.resolve(process.cwd(), 'public', 'processedVideos.json');
-  const fileContent = fs.readFileSync(filePath, 'utf-8');
-  const allVideos: VideoData[] = JSON.parse(fileContent) as VideoData[];
-
+  // Sekarang allVideos sudah tersedia dari import di atas
   return allVideos.map(video => ({
     params: { slug: `${slugify(video.title)}-${video.id}` },
     props: { video, allVideos },
   }));
 }
 
-const { video, allVideos } = Astro.props;
-
+const { video } = Astro.props;
 const numberOfRelatedVideos = 16;
 let relatedVideos: VideoData[] = [];
 
