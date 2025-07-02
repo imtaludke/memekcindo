@@ -1,19 +1,18 @@
 ---
 // src/pages/category/index.astro
 import Layout from '../../layouts/BaseLayout.astro';
-// !!! PERUBAHAN PENTING DI SINI !!!
-// Menggunakan fetch untuk membaca data JSON dari folder public
 import { nama, url } from '../../utils/site.ts';
 import type { VideoData } from '../../utils/data'; // Tetap gunakan tipe VideoData
+import { slugify } from '../../utils/slugify'; // Pindahkan ke sini untuk kerapian
 
 export const prerender = true;
 
-// Menggunakan fetch untuk membaca data JSON dari folder public
-const response = await fetch(`${url}/processedVideos.json`);
-const allVideos: VideoData[] = await response.json();
-// !!! AKHIR PERUBAHAN PENTING !!!
-
-import { slugify } from '../../utils/slugify';
+// --- PERBAIKAN PENTING DI SINI ---
+// Ganti fetch dengan import langsung untuk membaca data JSON dari folder public
+// Path: dari src/pages/category/ ke public/ adalah '../../public/'
+import processedVideosJson from '../../public/processedVideos.json';
+const allVideos: VideoData[] = processedVideosJson as VideoData[];
+// --- AKHIR PERBAIKAN PENTING ---
 
 const categoryData: { [key: string]: { count: number; thumbnails: string[]; } } = {};
 
