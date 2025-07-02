@@ -5,31 +5,20 @@ import { slugify } from '../utils/slugify';
 import { nama, url, terbit } from '../utils/site.ts';
 import type { VideoData } from '../utils/data';
 
-// Import Node.js built-in modules here
-import fs from 'node:fs';
-import path from 'node:path';
+// Import allVideos directly from the pre-processed file
+import allVideos from '../data/allVideos.ts'; // Adjust path if needed based on your file structure
 
 export const prerender = true;
 
-// ALL VIDEOS IS DEFINED AND LOADED INSIDE getStaticPaths
 export async function getStaticPaths() {
-  // Construct the absolute path to processedVideos.json
-  const filePath = path.resolve(process.cwd(), 'public', 'processedVideos.json');
-
-  // Read the file content synchronously
-  const fileContent = fs.readFileSync(filePath, 'utf-8');
-
-  // Parse the JSON content
-  const allVideos: VideoData[] = JSON.parse(fileContent) as VideoData[];
-
+  // allVideos is now available directly from the import
   return allVideos.map(video => ({
     params: { slug: `${slugify(video.title)}-${video.id}` },
-    props: { video, allVideos }, // Pass allVideos as a prop
+    props: { video, allVideos }, // Still pass allVideos as a prop if other parts of component need it
   }));
 }
 
-// Receive video and allVideos from props
-const { video, allVideos } = Astro.props;
+const { video, allVideos } = Astro.props; // Now allVideos comes from props, which is populated by getStaticPaths
 
 const numberOfRelatedVideos = 16;
 let relatedVideos: VideoData[] = [];
