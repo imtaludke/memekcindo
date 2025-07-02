@@ -7,7 +7,6 @@ import sharp from 'sharp';
 import rawVideosData from '../data/videos.json' with { type: 'json' }; // Ensure this path is correct
 
 // Extract the videos array. Adjust if your videos.json is a direct array.
-const videosData = rawVideosData.videos; 
 const videosData = rawVideosData;
 
 // You will likely need to adjust the path to the 'public' directory
