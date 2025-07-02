@@ -4,8 +4,7 @@ import Layout from '../layouts/BaseLayout.astro';
 import VideoCard from '../components/VideoCard.astro';
 import { slugify } from '../utils/slugify';
 import { getAllVideos, type VideoData } from '../utils/data';
-
-import { nama, desk, url, terbit } from '../utils/site.ts'; 
+import { nama, desk, url, terbit } from '../utils/site.ts';
 
 export const prerender = true;
 
@@ -47,8 +46,9 @@ allCategoryNames.forEach(categoryName => {
   finalVideosByCategory[categoryName] = selectedVideosForCategory;
 });
 
-const sortedCategories = Object.keys(finalVideosByCategory).sort(); 
+const sortedCategories = Object.keys(finalVideosByCategory).sort();
 
+// --- Logika untuk Bagian "Video Pilihan" (Random Videos) - TANPA PAGINASI ---
 const videosForRandomSelection = allVideos.filter(video => {
   const normalizedTitle = video.title.toLowerCase().trim();
   return !usedTitlesForCategories.has(normalizedTitle);
@@ -57,8 +57,10 @@ const videosForRandomSelection = allVideos.filter(video => {
 const shuffledRandomVideos = videosForRandomSelection
   .sort(() => 0.5 - Math.random());
 
-const maxRandomVideosToShow = 16; 
+const maxRandomVideosToShow = 16; // Membatasi video acak menjadi 16
 const allRandomVideos = shuffledRandomVideos.slice(0, maxRandomVideosToShow);
+// --- Akhir Logika Tanpa Paginasi ---
+
 
 const allDomains = new Set<string>();
 
@@ -66,7 +68,7 @@ allRandomVideos.forEach(video => {
   try {
     if (video.embedUrl) allDomains.add(new URL(video.embedUrl).origin);
   } catch (e) {
-    console.error(`[ERROR] URL embed tidak valid untuk video ID ${video.id} (allRandomVideos):`, e);
+    console.error(`[ERROR] URL thumbnail/embed tidak valid untuk video ID ${video.id} (allRandomVideos):`, e);
   }
 });
 
@@ -74,24 +76,24 @@ Object.values(finalVideosByCategory).flat().forEach(video => {
   try {
     if (video.embedUrl) allDomains.add(new URL(video.embedUrl).origin);
   } catch (e) {
-    console.error(`[ERROR] URL embed tidak valid untuk video ID ${video.id} (finalVideosByCategory):`, e);
+    console.error(`[ERROR] URL thumbnail/embed tidak valid untuk video ID ${video.id} (finalVideosByCategory):`, e);
   }
 });
 
-const preconnectDomains = Array.from(allDomains); 
+const preconnectDomains = Array.from(allDomains);
 
 const breadcrumbs = [
-  { name: 'Home', url: `${url}` }, 
+  { name: 'Home', url: `${url}` },
 ];
 
 const currentUrl = url;
 const siteName = nama;
 const siteDescription = desk;
-const sitePublishedDate = terbit; 
+
 ---
 
 <Layout
-  title={`${siteName} - Video Bokep Indo Terbaru`}
+  title={`${nama} - Video Bokep Indo Terbaru`}
   description={siteDescription}
   preconnectDomains={preconnectDomains}
   siteName={siteName}
@@ -100,22 +102,23 @@ const sitePublishedDate = terbit;
 
   <main class="home-page" itemscope itemtype="http://schema.org/WebPage">
     <meta itemprop="url" content={currentUrl} />
-    <meta itemprop="name" content={`${siteName} - Video Bokep Indo Terbaru`} />
-    <meta itemprop="description" content={siteDescription} />
+    <meta itemprop="name" content={`${nama} - Video Bokep Indo Terbaru`} />
+    <meta itemprop="description" content={desk} />
     <div itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
       <meta itemprop="name" content={siteName} />
       <div itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
         <meta itemprop="url" content={`${currentUrl}/logo.png`} />
       </div>
     </div>
-    <meta itemprop="datePublished" content={sitePublishedDate}/>
+    <meta itemprop="datePublished" content={terbit}/>
     <meta itemprop="dateModified" content={new Date().toISOString()} />
 
     <section class="hero-section">
-      <h1 itemprop="headline">Selamat Datang di {siteName}!</h1>
-      <p itemprop="description">{siteDescription} Tonton Sekarang Juga!</p>
+      <h1 itemprop="headline">Selamat Datang di {nama}!</h1>
+      <p itemprop="description">{desk} Tonton Sekarang Juga!</p>
     </section>
 
+    {/* Bagian "Video Pilihan" (TANPA PAGINASI) */}
     <section class="random-videos-section">
       {allRandomVideos.length > 0 ? (
         <>
@@ -125,12 +128,15 @@ const sitePublishedDate = terbit;
               <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
             ))}
           </div>
+          {/* Markup paginasi dihapus dari sini */}
         </>
       ) : (
         <p class="no-videos">Tidak ada video pilihan yang ditemukan saat ini.</p>
       )}
     </section>
 
+
+    {/* Bagian Kategori (tidak dipaginasi di sini) */}
     <section class="all-categories-section">
       {sortedCategories.length === 0 ? (
         <p class="no-videos-overall">Belum ada video yang tersedia di portal ini.</p>
@@ -151,7 +157,7 @@ const sitePublishedDate = terbit;
             </div>
             {videosByCategory[categoryName] && videosByCategory[categoryName].length > numberOfVideosPerCategory && (
               <div class="view-all-button-container">
-                <a href={`${url}/category/${slugify(categoryName)}/1`} class="view-all-button">Lihat Semua di kategori {categoryName}</a>
+                <a href={`${currentUrl}/category/${slugify(categoryName)}/1`} class="view-all-button">Lihat Semua di kategori {categoryName}</a>
               </div>
             )}
           </div>
