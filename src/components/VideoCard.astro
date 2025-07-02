@@ -35,9 +35,7 @@ const videoDetailPath = `${url}/${videoSlug}-${video.id}/`;
         class="video-preview"
         data-src={video.previewUrl}
         onerror="this.closest('.video-card').classList.add('video-preview-error');"
-      >
-        Your browser does not support the video tag.
-      </video>
+      ></video>
     )}
     {video.duration && (
       <span class="video-duration">
