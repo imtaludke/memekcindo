@@ -4,8 +4,8 @@ export interface VideoData {
   description: string;
   category: string;
   thumbnail: string; // Ini sekarang akan menjadi path lokal (misal: /optimized-thumbnails/id.webp)
-  thumbnailWidth: number; // Disarankan untuk menambahkan ini jika Anda ingin data yang lebih akurat
-  thumbnailHeight: number; // Disarankan untuk menambahkan ini jika Anda ingin data yang lebih akurat
+  thumbnailWidth?: number; // Disarankan untuk menambahkan ini jika Anda ingin data yang lebih akurat
+  thumbnailHeight?: number; // Disarankan untuk menambahkan ini jika Anda ingin data yang lebih akurat
   datePublished?: string;
   dateModified?: string;
   embedUrl: string;
