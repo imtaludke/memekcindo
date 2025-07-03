@@ -1,0 +1,79 @@
+---
+import Layout from '../../layouts/BaseLayout.astro';
+import { slugify } from '../../utils/slugify.ts';
+import type { VideoData } from '../../utils/data.ts';
+
+export const prerender = true;
+const nama = import.meta.env.PUBLIC_SITE_NAME;
+const desk = import.meta.env.PUBLIC_SITE_DESCRIPTION;
+const url = import.meta.env.PUBLIC_SITE_URL;
+
+import processedVideosJson from '../../../public/processedVideos.json';
+const allVideos: VideoData[] = processedVideosJson as VideoData[];
+
+const uniqueTags = new Set<string>();
+
+allVideos.forEach(video => {
+  if (typeof video.tags === 'string') {
+    video.tags.split(',').forEach(tag => {
+      const trimmedTag = tag.trim();
+      if (trimmedTag.length > 0) {
+        uniqueTags.add(trimmedTag);
+      }
+    });
+  }
+});
+
+const sortedTags = Array.from(uniqueTags).sort((a, b) => a.localeCompare(b));
+
+const breadcrumbs = [
+  { name: 'Home', url: `${url}` },
+  { name: 'Semua Tags', url: `${url}/tags` },
+];
+
+let preconnectDomains: string[] = [];
+---
+
+<Layout
+  title={`Semua Tags - ${nama}`}
+  description={`Jelajahi daftar lengkap tags yang tersedia di situs ${nama} ${desk}.`}
+  preconnectDomains={preconnectDomains}
+  siteName={nama}
+  siteUrl={url}
+>
+  <main class="tags-index-page">
+    <nav class="breadcrumb" aria-label="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+      <ol>
+        {breadcrumbs.map((item, index) => (
+          <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+            {index > 0 && <span class="separator">/</span>}
+            {item.url ? (
+              <a itemprop="item" href={item.url}>
+                <span itemprop="name">{item.name}</span>
+              </a>
+            ) : (
+              <span itemprop="name">{item.name}</span>
+            )}
+            <meta itemprop="position" content={(index + 1).toString()} />
+          </li>
+        ))}
+      </ol>
+    </nav>
+
+    <h1 class="page-title">Semua Tags</h1>
+
+    {sortedTags.length === 0 ? (
+      <p class="no-tags-message">
+        Tidak ada tags yang ditemukan.
+      </p>
+    ) : (
+      <div class="tags-grid">
+        {sortedTags.map(tag => (
+          <a href={`/video/${slugify(tag)}/1`} class="tag-card">
+            {tag}
+          </a>
+        ))}
+      </div>
+    )}
+  </main>
+</Layout>

@@ -1,0 +1,116 @@
+---
+// src/pages/category/index.astro
+import Layout from '../../layouts/BaseLayout.astro';
+import type { VideoData } from '../../utils/data';
+import { slugify } from '../../utils/slugify';
+
+export const prerender = true;
+const nama = import.meta.env.PUBLIC_SITE_NAME;
+const desk = import.meta.env.PUBLIC_SITE_DESCRIPTION;
+const url = import.meta.env.PUBLIC_SITE_URL;
+
+// --- PERBAIKAN PENTING DI SINI ---
+// Ganti fetch dengan import langsung untuk membaca data JSON dari folder public
+// Path yang benar: dari src/pages/category/ ke public/ adalah '../../public/'
+import processedVideosJson from '../../../public/processedVideos.json';
+const allVideos: VideoData[] = processedVideosJson as VideoData[];
+// --- AKHIR PERBAIKAN PENTING ---
+
+const categoryData: { [key: string]: { count: number; thumbnails: string[]; } } = {};
+
+allVideos.forEach(video => {
+  if (!categoryData[video.category]) {
+    categoryData[video.category] = {
+      count: 0,
+      thumbnails: []
+    };
+  }
+  categoryData[video.category].count++;
+
+  if (video.thumbnail) {
+    categoryData[video.category].thumbnails.push(video.thumbnail);
+  }
+});
+
+const categories = Object.keys(categoryData)
+  .map(categoryName => {
+    const categoryInfo = categoryData[categoryName];
+    let selectedThumbnail: string | null = null;
+
+    if (categoryInfo.thumbnails.length > 0) {
+      const randomIndex = Math.floor(Math.random() * categoryInfo.thumbnails.length);
+      selectedThumbnail = categoryInfo.thumbnails[randomIndex];
+    }
+
+    return {
+      name: categoryName,
+      count: categoryInfo.count,
+      slug: slugify(categoryName),
+      thumbnail: selectedThumbnail
+    };
+  })
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const breadcrumbs = [
+  { name: 'Home', url: `${url}` },
+  { name: 'Category', url: `${url}/category/` },
+];
+
+const THUMBNAIL_ASPECT_RATIO_WIDTH = 16;
+const THUMBNAIL_ASPECT_RATIO_HEIGHT = 9;
+const CATEGORY_THUMBNAIL_WIDTH = 300;
+const CATEGORY_THUMBNAIL_HEIGHT = Math.round(CATEGORY_THUMBNAIL_WIDTH * (THUMBNAIL_ASPECT_RATIO_HEIGHT / THUMBNAIL_ASPECT_RATIO_WIDTH));
+---
+
+<Layout
+  title={`Daftar Kategori Video | ${nama}`}
+  description={`Jelajahi berbagai kategori video yang tersedia di ${nama} ${desk}`}
+>
+  <main class="categories-list-page">
+    <nav class="breadcrumb" aria-label="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+      <ol>
+        {breadcrumbs.map((item, index) => (
+          <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+            {index > 0 && <span class="separator">/</span>}
+            {item.url ? (
+              <a itemprop="item" href={item.url}>
+                <span itemprop="name">{item.name}</span>
+              </a>
+            ) : (
+              <span itemprop="name">{item.name}</span>
+            )}
+            <meta itemprop="position" content={(index + 1).toString()} />
+          </li>
+        ))}
+      </ol>
+    </nav>
+
+    <h1 class="page-title">Semua Kategori Video di {nama}</h1>
+
+    {categories.length === 0 ? (
+      <p class="no-categories">Tidak ada kategori video yang tersedia saat ini.</p>
+    ) : (
+      <div class="category-list">
+        {categories.map(category => (
+          <a href={`/category/${category.slug}/1`} class="category-item">
+            {category.thumbnail && (
+              <div class="category-thumbnail-wrapper">
+                <img
+                  src={category.thumbnail}
+                  alt={`Thumbnail untuk category ${category.name}`}
+                  title={`Thumbnail category ${category.name}`}
+                  width={CATEGORY_THUMBNAIL_WIDTH}
+                  height={CATEGORY_THUMBNAIL_HEIGHT}
+                  loading="lazy"
+                  class="category-thumbnail"
+                />
+              </div>
+            )}
+            <h2 class="category-item-title">{category.name}</h2>
+            <p class="category-item-count">{category.count} Video</p>
+          </a>
+        ))}
+      </div>
+    )}
+  </main>
+</Layout>

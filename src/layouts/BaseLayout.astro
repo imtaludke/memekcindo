@@ -1,0 +1,111 @@
+---
+export interface Props {
+  title: string;
+  description: string;
+  preconnectDomains?: string[];
+  siteName?: string;
+  siteUrl?: string;
+}
+const nama = import.meta.env.PUBLIC_SITE_NAME;
+const desk = import.meta.env.PUBLIC_SITE_DESCRIPTION;
+const url = import.meta.env.PUBLIC_SITE_URL;
+const googleVerification = import.meta.env.PUBLIC_GOOGLE_SITE_VERIFICATION;
+const yandexVerification = import.meta.env.PUBLIC_YANDEX_SITE_VERIFICATION;
+
+const {
+  title,
+  description,
+  preconnectDomains = [],
+  siteName = nama,
+} = Astro.props;
+const currentUrl = url;
+const siteDescription = desk;
+
+const ogImageFullUrl = new URL(`${url}/logo.png`, url).href;
+
+const websiteSchema = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": siteName,
+  "url": currentUrl,
+  "description": siteDescription,
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": `${currentUrl}/video/{query}`
+    },
+    "query-input": "required name=query"
+  }
+};
+
+const organizationSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": siteName,
+  "url": currentUrl,
+  "logo": `${currentUrl}/logo.png`,
+  "description": siteDescription,
+  "sameAs": []
+};
+
+const jsonLdSchemas = [
+  websiteSchema,
+  organizationSchema
+];
+---
+
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content={title} />
+    <link rel="canonical" href={Astro.url.href} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={Astro.url.href} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image" content={ogImageFullUrl} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageFullUrl} />
+    <meta name="google-site-verification" content={googleVerification} />
+    <meta name="yandex-verification" content={yandexVerification} />
+    {preconnectDomains.map(domain => (
+      <link rel="preconnect" href={domain} crossorigin>
+    ))}
+  <script type="application/ld+json" set:html={JSON.stringify(jsonLdSchemas)} />
+    <slot name="head" />
+  <link rel="stylesheet" href="/global.css" />
+  </head>
+  <body>
+    <header>
+      <nav class="main-nav">
+        <a href={currentUrl} class="logo" alt={siteName}>{siteName}</a>
+        <form id="searchForm" action="/video/" method="get" class="search-form">
+          <input type="search" name="query" placeholder="Cari video..." required />
+          <button type="submit">Cari</button>
+        </form>
+        <ul class="nav-links">
+          <li><a href={currentUrl}>Home</a></li>
+          <li><a href="/category/">Category</a></li>
+          <li><a href="/tags/">Tags</a></li>
+          <li>
+            <button id="darkModeToggle" class="dark-mode-toggle" aria-label="Toggle dark mode">☀️</button>
+          </li>
+        </ul>
+      </nav>
+    </header>
+
+    <slot />
+
+    <footer>
+      <p>&copy; {new Date().getFullYear()} {siteName}. All rights reserved.</p>
+    </footer>
+     <script src="/js/jstheme.js" defer></script>
+  </body>
+</html>
