@@ -9,9 +9,6 @@ const nama = import.meta.env.PUBLIC_SITE_NAME;
 const desk = import.meta.env.PUBLIC_SITE_DESCRIPTION;
 const url = import.meta.env.PUBLIC_SITE_URL;
 
-// --- PERBAIKAN PENTING DI SINI ---
-// Ganti fetch dengan import langsung untuk membaca data JSON dari folder public
-// Path yang benar: dari src/pages/category/ ke public/ adalah '../../public/'
 import processedVideosJson from '../../../public/processedVideos.json';
 const allVideos: VideoData[] = processedVideosJson as VideoData[];
 // --- AKHIR PERBAIKAN PENTING ---
