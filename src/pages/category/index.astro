@@ -1,0 +1,140 @@
+---
+// src/pages/category/index.astro
+import Layout from '../../layouts/BaseLayout.astro';
+import { slugify } from '../../utils/slugify.ts';
+import { getAllVideos, type VideoData } from '../../utils/data.ts';
+
+export const prerender = true;
+
+// Ambil semua data video
+const allVideos: VideoData[] = await getAllVideos();
+
+// Inisialisasi objek untuk menyimpan data kategori (nama, jumlah, thumbnail)
+const categoryData: { [key: string]: { count: number; thumbnails: string[]; } } = {};
+
+// Proses setiap video untuk mengumpulkan data kategori
+allVideos.forEach(video => {
+  // Jika kategori belum ada di categoryData, inisialisasi
+  if (!categoryData[video.category]) {
+    categoryData[video.category] = {
+      count: 0,
+      thumbnails: []
+    };
+  }
+  // Tambahkan jumlah video untuk kategori ini
+  categoryData[video.category].count++;
+
+  // Jika video memiliki thumbnail, tambahkan ke array thumbnail kategori
+  if (video.thumbnail) {
+    categoryData[video.category].thumbnails.push(video.thumbnail);
+  }
+});
+
+// Ubah objek categoryData menjadi array kategori yang lebih mudah di-*render*
+const categories = Object.keys(categoryData)
+  .map(categoryName => {
+    const categoryInfo = categoryData[categoryName];
+    let selectedThumbnail: string | null = null;
+
+    // Pilih thumbnail secara acak dari yang tersedia untuk kategori ini
+    if (categoryInfo.thumbnails.length > 0) {
+      const randomIndex = Math.floor(Math.random() * categoryInfo.thumbnails.length);
+      selectedThumbnail = categoryInfo.thumbnails[randomIndex];
+    }
+
+    return {
+      name: categoryName,
+      count: categoryInfo.count,
+      slug: slugify(categoryName),
+      thumbnail: selectedThumbnail
+    };
+  })
+  // Urutkan kategori berdasarkan nama
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+// Ambil variabel lingkungan untuk metadata dan breadcrumbs
+const currentUrl = import.meta.env.PUBLIC_SITE_URL;
+const siteName = import.meta.env.PUBLIC_SITE_NAME;
+const siteDescription = import.meta.env.PUBLIC_SITE_DESCRIPTION;
+
+// Definisikan breadcrumbs
+const breadcrumbs = [
+  { name: 'Home', url: currentUrl },
+  { name: 'Category', url: `${currentUrl}/category/` },
+];
+
+// Konstan untuk ukuran thumbnail kategori (untuk konsistensi)
+const THUMBNAIL_ASPECT_RATIO_WIDTH = 16;
+const THUMBNAIL_ASPECT_RATIO_HEIGHT = 9;
+const CATEGORY_THUMBNAIL_WIDTH = 300;
+const CATEGORY_THUMBNAIL_HEIGHT = Math.round(CATEGORY_THUMBNAIL_WIDTH * (THUMBNAIL_ASPECT_RATIO_HEIGHT / THUMBNAIL_ASPECT_RATIO_WIDTH));
+
+// Tidak perlu preconnectDomains di sini kecuali Anda tahu ada sumber eksternal khusus untuk halaman ini
+const preconnectDomains: string[] = []; 
+---
+
+<Layout
+  title={`Daftar Kategori Video | ${siteName}`}
+  description={`Jelajahi berbagai kategori video yang tersedia di ${siteName} ${siteDescription}`}
+  preconnectDomains={preconnectDomains}
+  siteName={siteName}
+  siteUrl={currentUrl}
+>
+  <main class="categories-list-page">
+    <nav class="breadcrumb" aria-label="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+      <ol>
+        {breadcrumbs.map((item, index) => (
+          <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+            {index > 0 && <span class="separator">/</span>}
+            {item.url ? (
+              <a itemprop="item" href={item.url}>
+                <span itemprop="name">{item.name}</span>
+              </a>
+            ) : (
+              <span itemprop="name">{item.name}</span>
+            )}
+            <meta itemprop="position" content={(index + 1).toString()} />
+          </li>
+        ))}
+      </ol>
+    </nav>
+
+    <h1 class="page-title">Semua Kategori Video di {siteName}</h1>
+    <div class="juicyads-ad-container" style="min-height: 100px; width: 100%; display: flex; justify-content: center; align-items: center; background-color: var(--card-bg); border-radius: var(--border-radius-medium); margin-bottom: var(--spacing-unit);">
+    <script type="text/javascript" data-cfasync="false" async src="https://poweredby.jads.co/js/jads.js"></script>
+    <ins id="1078976" data-width="300" data-height="100"></ins>
+    <script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1078976});</script>
+    </div>
+
+    {categories.length === 0 ? (
+      <p class="no-categories">Tidak ada kategori video yang tersedia saat ini.</p>
+    ) : (
+      <div class="category-list">
+        <script type="text/javascript" data-cfasync="false" async src="https://poweredby.jads.co/js/jads.js"></script>
+        <ins id="1094678" data-width="300" data-height="262"></ins>
+        <script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1094678});</script>
+        <ins id="1058210" data-width="300" data-height="262"></ins>
+        <script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1058210});</script>
+        {categories.map(category => (
+          <a href={`/category/${category.slug}/1`} class="category-item">
+            {category.thumbnail && (
+              <div class="category-thumbnail-wrapper">
+                <img
+                  src={category.thumbnail}
+                  alt={`Thumbnail untuk kategori ${category.name}`}
+                  title={`Thumbnail kategori ${category.name}`}
+                  width={CATEGORY_THUMBNAIL_WIDTH}
+                  height={CATEGORY_THUMBNAIL_HEIGHT}
+                  loading="lazy"
+                  class="category-thumbnail"
+                />
+              </div>
+            )}
+            <h2 class="category-item-title">{category.name}</h2>
+            <p class="category-item-count">{category.count} Video</p>
+          </a>
+        ))}
+      </div>
+    )}
+  </main>
+</Layout>

@@ -1,0 +1,90 @@
+---
+// src/pages/tags/index.astro
+import Layout from '../../layouts/BaseLayout.astro';
+import { slugify } from '../../utils/slugify.ts';
+import { getAllVideos, type VideoData } from '../../utils/data.ts';
+
+export const prerender = true;
+
+// Ambil semua data video
+const allVideos: VideoData[] = await getAllVideos();
+
+// Set untuk menyimpan tag-tag unik
+const uniqueTags = new Set<string>();
+
+// Iterasi melalui semua video untuk mengekstrak tag
+allVideos.forEach(video => {
+  // Pastikan video.tags adalah string sebelum memproses
+  if (typeof video.tags === 'string') {
+    // Pisahkan tag berdasarkan koma dan proses setiap tag
+    video.tags.split(',').forEach(tag => {
+      const trimmedTag = tag.trim(); // Hapus spasi di awal/akhir
+      // Tambahkan tag ke Set jika tidak kosong
+      if (trimmedTag.length > 0) {
+        uniqueTags.add(trimmedTag);
+      }
+    });
+  }
+});
+
+// Ubah Set menjadi Array dan urutkan secara abjad
+const sortedTags = Array.from(uniqueTags).sort((a, b) => a.localeCompare(b));
+
+// Ambil variabel lingkungan untuk metadata dan breadcrumbs
+const currentUrl = import.meta.env.PUBLIC_SITE_URL;
+const siteName = import.meta.env.PUBLIC_SITE_NAME;
+const siteDescription = import.meta.env.PUBLIC_SITE_DESCRIPTION;
+
+// Definisikan breadcrumbs
+const breadcrumbs = [
+  { name: 'Home', url: currentUrl },
+  { name: 'Semua Tags', url: `${currentUrl}/tags` },
+];
+
+// Tidak perlu preconnectDomains di sini kecuali ada sumber eksternal spesifik
+const preconnectDomains: string[] = []; 
+---
+
+<Layout
+  title={`Semua Tags - ${siteName}`}
+  description={`Jelajahi daftar lengkap tags yang tersedia di situs ${siteName} ${siteDescription}.`}
+  preconnectDomains={preconnectDomains}
+  siteName={siteName}
+  siteUrl={currentUrl}
+>
+  <main class="tags-index-page">
+    <nav class="breadcrumb" aria-label="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+      <ol>
+        {breadcrumbs.map((item, index) => (
+          <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+            {index > 0 && <span class="separator">/</span>}
+            {item.url ? (
+              <a itemprop="item" href={item.url}>
+                <span itemprop="name">{item.name}</span>
+              </a>
+            ) : (
+              <span itemprop="name">{item.name}</span>
+            )}
+            <meta itemprop="position" content={(index + 1).toString()} />
+          </li>
+        ))}
+      </ol>
+    </nav>
+
+    <h1 class="page-title">Semua Tags</h1>
+
+    {sortedTags.length === 0 ? (
+      <p class="no-tags-message">
+        Tidak ada tags yang ditemukan.
+      </p>
+    ) : (
+      <div class="tags-grid">
+        {sortedTags.map(tag => (
+          <a href={`/video/${slugify(tag)}/1`} class="tag-card">
+            {tag}
+          </a>
+        ))}
+      </div>
+    )}
+  </main>
+</Layout>

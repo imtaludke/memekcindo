@@ -3,9 +3,9 @@
   "type": "module",
   "version": "0.0.1",
   "scripts": {
-    "dev": "node scripts/generate-indexnow-key.js && node src/utils/processThumbnails.mjs && node scripts/prepareData.mjs && node scripts/generate-favicons.js && astro dev",
-    "start": "node scripts/generate-indexnow-key.js && node src/utils/processThumbnails.mjs && node scripts/prepareData.mjs && node scripts/generate-favicons.js && astro dev",
-    "build": "node scripts/generate-indexnow-key.js && node src/utils/processThumbnails.mjs && node scripts/prepareData.mjs && node scripts/generate-favicons.js && astro build && node ./scripts/notify-indexnow.js",
+    "dev": "node scripts/generate-indexnow-key.js && node src/utils/processThumbnails.mjs && node scripts/generate-favicons.js && astro dev",
+    "start": "node scripts/generate-indexnow-key.js && node src/utils/processThumbnails.mjs && node scripts/generate-favicons.js && astro dev",
+    "build": "node scripts/generate-indexnow-key.js && node src/utils/processThumbnails.mjs && node scripts/generate-favicons.js && astro build && node ./scripts/notify-indexnow.js",
     "preview": "astro preview",
     "generate-favicons": "node scripts/generate-favicons.js",
     "generate-indexnow-key": "node scripts/generate-indexnow-key.js",
@@ -20,7 +20,6 @@
     "astro": "^4.10.1",
     "dotenv": "^17.0.1",
     "node-fetch": "^3.3.2",
-    "react": "^19.1.0",
     "sharp": "^0.34.2"
   },
   "devDependencies": {

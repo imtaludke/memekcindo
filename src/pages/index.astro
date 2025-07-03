@@ -1,0 +1,165 @@
+---
+// src/pages/index.astro
+import Layout from '../layouts/BaseLayout.astro';
+import VideoCard from '../components/VideoCard.astro';
+import { slugify } from '../utils/slugify';
+import { getAllVideos, type VideoData } from '../utils/data';
+
+export const prerender = true;
+
+const allVideos: VideoData[] = await getAllVideos();
+
+const videosByCategory: { [key: string]: VideoData[] } = {};
+const numberOfVideosPerCategory = 16; 
+
+const usedTitlesForCategories = new Set<string>(); 
+
+allVideos.forEach(video => {
+  if (!videosByCategory[video.category]) {
+    videosByCategory[video.category] = [];
+  }
+  videosByCategory[video.category].push(video);
+});
+
+const finalVideosByCategory: { [key: string]: VideoData[] } = {};
+const allCategoryNames = Object.keys(videosByCategory);
+
+allCategoryNames.forEach(categoryName => {
+  const videosInThisCategory = videosByCategory[categoryName];
+
+  const shuffledVideosInThisCategory = videosInThisCategory
+    .sort(() => 0.5 - Math.random());
+
+  const selectedVideosForCategory: VideoData[] = [];
+
+  for (const video of shuffledVideosInThisCategory) {
+    const normalizedTitle = video.title.toLowerCase().trim();
+    if (!usedTitlesForCategories.has(normalizedTitle)) {
+      selectedVideosForCategory.push(video);
+      usedTitlesForCategories.add(normalizedTitle); 
+    }
+    if (selectedVideosForCategory.length >= numberOfVideosPerCategory) {
+      break; 
+    }
+  }
+  finalVideosByCategory[categoryName] = selectedVideosForCategory;
+});
+
+const sortedCategories = Object.keys(finalVideosByCategory).sort();
+
+// --- Logika untuk Bagian "Video Pilihan" (Random Videos) - TANPA PAGINASI ---
+const videosForRandomSelection = allVideos.filter(video => {
+  const normalizedTitle = video.title.toLowerCase().trim();
+  return !usedTitlesForCategories.has(normalizedTitle);
+});
+
+const shuffledRandomVideos = videosForRandomSelection
+  .sort(() => 0.5 - Math.random());
+
+const maxRandomVideosToShow = 16;
+const allRandomVideos = shuffledRandomVideos.slice(0, maxRandomVideosToShow);
+// --- Akhir Logika Tanpa Paginasi ---
+
+
+const allDomains = new Set<string>();
+
+allRandomVideos.forEach(video => {
+  try {
+    if (video.embedUrl) allDomains.add(new URL(video.embedUrl).origin);
+  } catch (e) {
+    console.error(`[ERROR] URL thumbnail/embed tidak valid untuk video ID ${video.id} (allRandomVideos):`, e);
+  }
+});
+
+Object.values(finalVideosByCategory).flat().forEach(video => {
+  try {
+    if (video.embedUrl) allDomains.add(new URL(video.embedUrl).origin);
+  } catch (e) {
+    console.error(`[ERROR] URL thumbnail/embed tidak valid untuk video ID ${video.id} (finalVideosByCategory):`, e);
+  }
+});
+const currentUrl = import.meta.env.PUBLIC_SITE_URL;
+const siteName = import.meta.env.PUBLIC_SITE_NAME;
+const siteDescription = import.meta.env.PUBLIC_SITE_DESCRIPTION;
+const datePublished = import.meta.env.PUBLIC_SITE_PUBLISHED_DATE
+
+const preconnectDomains = Array.from(allDomains);
+
+const breadcrumbs = [
+  { name: 'Home', url: {currentUrl}},
+];
+
+---
+
+<Layout
+  title={`${siteName} - Video Bokep Indo Terbaru`}
+  description={siteDescription}
+  preconnectDomains={preconnectDomains}
+  siteName={siteName}
+  siteUrl={currentUrl}
+>
+
+  <main class="home-page" itemscope itemtype="http://schema.org/WebPage">
+    <meta itemprop="url" content={currentUrl} />
+    <meta itemprop="name" content={`${siteName} - Video Bokep Indo Terbaru`} />
+    <meta itemprop="description" content={siteDescription} />
+    <div itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content={siteName} />
+      <div itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+        <meta itemprop="url" content={`${currentUrl}/logo.png`} />
+      </div>
+    </div>
+    <meta itemprop="datePublished" content={datePublished}/>
+    <meta itemprop="dateModified" content={new Date().toISOString()} />
+
+    <section class="hero-section">
+      <h1 itemprop="headline">Selamat Datang di {siteName}!</h1>
+      <p itemprop="description">{siteDescription} Tonton Sekarang Juga!</p>
+    </section>
+
+    <section class="random-videos-section">
+      {allRandomVideos.length > 0 ? (
+        <>
+          <h2 class="section-title">Video Pilihan</h2>
+          <div class="video-grid">
+            {allRandomVideos.map((video) => (
+              <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
+            ))}
+          </div>
+        </>
+      ) : (
+        <p class="no-videos">Tidak ada video pilihan yang ditemukan saat ini.</p>
+      )}
+    </section>
+
+
+    <section class="all-categories-section">
+      {sortedCategories.length === 0 ? (
+        <p class="no-videos-overall">Belum ada video yang tersedia di portal ini.</p>
+      ) : (
+        sortedCategories.map(categoryName => (
+          <div class="category-group">
+            <h2 class="category-title">
+              {categoryName}
+            </h2>
+            <div class="video-grid">
+              {finalVideosByCategory[categoryName].length === 0 ? (
+                <p class="no-videos-in-category">Tidak ada video dalam kategori ini.</p>
+              ) : (
+                finalVideosByCategory[categoryName].map((video) => (
+                  <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
+                ))
+              )}
+            </div>
+            {videosByCategory[categoryName] && videosByCategory[categoryName].length > numberOfVideosPerCategory && (
+              <div class="view-all-button-container">
+                <a href={`/category/${slugify(categoryName)}/1`} class="view-all-button">Lihat Semua di kategori {categoryName}</a>
+              </div>
+            )}
+          </div>
+        ))
+      )}
+    </section>
+
+  </main>
+</Layout>

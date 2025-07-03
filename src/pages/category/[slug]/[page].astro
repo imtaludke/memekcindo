@@ -1,0 +1,164 @@
+---
+// src/pages/category/[slug]/[page].astro
+import Layout from '../../../layouts/BaseLayout.astro';
+import VideoCard from '../../../components/VideoCard.astro';
+import { slugify } from '../../../utils/slugify.ts';
+import { getAllVideos, type VideoData } from '../../../utils/data.ts'; // Perubahan di sini!
+
+export const prerender = true;
+
+// Ambil semua data video menggunakan fungsi helper
+const allVideos: VideoData[] = await getAllVideos(); // Perubahan di sini!
+
+const videosPerPage = 38;
+
+export async function getStaticPaths() {
+  // Ambil semua data video di sini juga untuk getStaticPaths
+  const allVideosForPaths: VideoData[] = await getAllVideos(); // Perubahan di sini!
+  const VIDEOS_PER_PAGE_FOR_PATHS = 38;
+
+  const categoryData: { [key: string]: number } = {};
+  allVideosForPaths.forEach(video => {
+    if (!categoryData[video.category]) {
+      categoryData[video.category] = 0;
+    }
+    categoryData[video.category]++;
+  });
+
+  const paths = Object.keys(categoryData).flatMap(categoryName => {
+    const totalVideosInCategory = categoryData[categoryName];
+    const totalPagesInCategory = Math.ceil(totalVideosInCategory / VIDEOS_PER_PAGE_FOR_PATHS);
+    const categorySlug = slugify(categoryName);
+
+    return Array.from({ length: totalPagesInCategory }, (_, i) => ({
+      params: { slug: categorySlug, page: (i + 1).toString() },
+      props: { categoryName: categoryName }
+    }));
+  });
+
+  return paths;
+}
+
+const { slug, page } = Astro.params;
+const currentPage = parseInt(page as string);
+const { categoryName } = Astro.props;
+
+const categoryVideos = allVideos.filter(video => slugify(video.category) === slug);
+
+const sortedCategoryVideos = [...categoryVideos].sort((a, b) => a.title.localeCompare(b.title));
+
+const startIndex = (currentPage - 1) * videosPerPage;
+const endIndex = startIndex + videosPerPage;
+const paginatedVideos = sortedCategoryVideos.slice(startIndex, endIndex);
+
+const totalVideosInCategory = sortedCategoryVideos.length;
+const totalPagesInCategory = Math.ceil(totalVideosInCategory / videosPerPage);
+
+const preconnectDomains = new Set<string>();
+paginatedVideos.forEach(video => {
+  try {
+    if (video.embedUrl) {
+      preconnectDomains.add(new URL(video.embedUrl).origin);
+    }
+  } catch (e) {
+    console.error(`Invalid URL for video ID "${video.id}" (category page):`, e);
+  }
+});
+
+// Menggunakan satu set variabel lingkungan untuk konsistensi
+const currentUrl = import.meta.env.PUBLIC_SITE_URL;
+const siteName = import.meta.env.PUBLIC_SITE_NAME;
+const siteDescription = import.meta.env.PUBLIC_SITE_DESCRIPTION;
+
+
+const pageCanonicalUrl = new URL(Astro.url.pathname, currentUrl).href; // Menggunakan currentUrl
+
+const breadcrumbs = [
+  { name: 'Home', url: currentUrl }, // Perubahan di sini!
+  { name: 'Category', url: `${currentUrl}/category/` }, // Perubahan di sini!
+  { name: `${categoryName} Page ${currentPage}` },
+];
+---
+
+<Layout
+  title={`${categoryName} Page ${currentPage} | ${siteName}`} // Menggunakan siteName
+  description={`Halaman ${currentPage} dari video kategori ${categoryName} di ${siteName}.`} // Menggunakan siteName
+  preconnectDomains={Array.from(preconnectDomains)}
+  canonicalUrl={pageCanonicalUrl}
+  siteName={siteName} // Pastikan ini diteruskan jika Layout membutuhkannya
+  siteUrl={currentUrl} // Pastikan ini diteruskan jika Layout membutuhkannya
+>
+
+  <Fragment slot="head">
+    <meta property="og:type" content="article" />
+  </Fragment>
+
+  <main class="category-page" itemscope itemtype="http://schema.org/CollectionPage">
+    <nav class="breadcrumb" aria-label="breadcrumb" itemscope itemtype="http://schema.org/BreadcrumbList">
+      <ol>
+        {breadcrumbs.map((item, index) => (
+          <li itemprop="itemListElement" itemscope itemtype="http://schema.org/ListItem">
+            {index > 0 && <span class="separator">/</span>}
+            {item.url ? (
+              <a itemprop="item" href={item.url}>
+                <span itemprop="name">{item.name}</span>
+              </a>
+            ) : (
+              <span itemprop="name">{item.name}</span>
+            )}
+            <meta itemprop="position" content={(index + 1).toString()} />
+          </li>
+        ))}
+      </ol>
+    </nav>
+    <div class="juicyads-ad-container" style="min-height: 100px; width: 100%; display: flex; justify-content: center; align-items: center; background-color: var(--card-bg); border-radius: var(--border-radius-medium); margin-bottom: var(--spacing-unit);">
+    <script type="text/javascript" data-cfasync="false" async src="https://poweredby.jads.co/js/jads.js"></script>
+    <ins id="1078976" data-width="300" data-height="100"></ins>
+    <script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1078976});</script>
+    </div>
+
+    <h1 class="page-title" itemprop="headline">Video Kategori: {categoryName} (Halaman {currentPage})</h1>
+    {paginatedVideos.length === 0 ? (
+      <p class="no-videos">Tidak ada video di kategori ini untuk halaman ini.</p>
+    ) : (
+      <div class="video-grid">
+        <script type="text/javascript" data-cfasync="false" async src="https://poweredby.jads.co/js/jads.js"></script>
+        <ins id="1094678" data-width="300" data-height="262"></ins>
+        <script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1094678});</script>
+        {paginatedVideos.map((video) => (
+          <VideoCard video={video} videoDetailPath={`/${slugify(video.title)}-${video.id}`} />
+        ))}
+        <script type="text/javascript" data-cfasync="false" async src="https://poweredby.jads.co/js/jads.js"></script>
+        <ins id="1058210" data-width="300" data-height="262"></ins>
+        <script type="text/javascript" data-cfasync="false" async>(adsbyjuicy = window.adsbyjuicy || []).push({'adzone':1058210});</script>
+      </div>
+    )}
+
+    {totalPagesInCategory > 1 && (
+      <nav class="pagination" aria-label={`Navigasi Kategori ${categoryName}`}>
+        {currentPage > 1 && (
+          <a
+            href={`/category/${slug}/${currentPage - 1}`}
+            class="pagination-link pagination-prev"
+            rel="prev"
+          >&laquo; Sebelumnya</a>
+        )}
+        {Array.from({ length: totalPagesInCategory }, (_, i) => (
+          <a
+            key={i + 1}
+            href={`/category/${slug}/${i + 1}`}
+            class={`pagination-link ${currentPage === i + 1 ? 'active' : ''}`}
+            aria-current={currentPage === i + 1 ? 'page' : undefined}
+          >{i + 1}</a>
+        ))}
+        {currentPage < totalPagesInCategory && (
+          <a
+            href={`/category/${slug}/${currentPage + 1}`}
+            class="pagination-link pagination-next"
+            rel="next"
+          >Berikutnya &raquo;</a>
+        )}
+      </nav>
+    )}
+  </main>
+</Layout>
