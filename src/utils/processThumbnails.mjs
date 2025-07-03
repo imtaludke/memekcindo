@@ -65,6 +65,10 @@ async function processThumbnails() {
         const thumbnailFileName = `${videoSlug}-${video.id}.webp`; // Nama file yang konsisten
         const outputPath = path.join(optimizedThumbnailsDir, thumbnailFileName); // Path lengkap di sistem file
         const relativeThumbnailPath = `/${OPTIMIZED_IMAGES_SUBDIR}/${thumbnailFileName}`; // Path URL relatif
+        // --- TAMBAHKAN LOGGING INI ---
+        console.log(`\nProcessing video: ${video.title} (ID: ${video.id})`);
+        console.log(`  Expected thumbnail path: ${outputPath}`);
+        // --- AKHIR LOGGING TAMBAHAN ---
 
         try {
             // --- LOGIKA UTAMA: Cek apakah thumbnail sudah ada di folder optimizedThumbnailsDir ---
@@ -89,6 +93,9 @@ async function processThumbnails() {
                     const existingMetadata = await sharp(outputPath).metadata();
                     finalWidth = existingMetadata.width || DEFAULT_FALLBACK_WIDTH;
                     finalHeight = existingMetadata.height || DEFAULT_FALLBACK_HEIGHT;
+                    // --- TAMBAHKAN LOGGING INI ---
+                    console.log(`  Using existing metadata: ${finalWidth}x${finalHeight}`);
+                    // --- AKHIR LOGGING TAMBAHAN ---
                 } catch (metaError) {
                     console.warn(`Could not read metadata for existing thumbnail ${thumbnailFileName}: ${metaError.message}. Using fallback dimensions.`);
                 }
