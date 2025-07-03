@@ -5,10 +5,9 @@ import VideoCard from '../../../components/VideoCard.astro';
 import { slugify } from '../../../utils/slugify.ts';
 import type { VideoData } from '../../../utils/data.ts'; // Tetap gunakan tipe data yang sama
 
+import allVideos from '../../../data/allVideos.ts';
+
 export async function getStaticPaths() {
-  // getStaticPaths ini bisa dibiarkan kosong karena ini adalah dynamic route
-  // yang menangani berbagai query dan page.
-  // Jika Anda ingin membuat path statis untuk query tertentu, Anda bisa menambahkannya di sini.
   return [];
 }
 const nama = import.meta.env.PUBLIC_SITE_NAME;
@@ -21,12 +20,6 @@ const currentPage = page ? parseInt(page) : 1;
 const videosPerPage = 40;
 
 const searchInput = originalQuery.toLowerCase().trim();
-
-// !!! PERUBAHAN PENTING DI SINI !!!
-// Menggunakan fetch untuk membaca data JSON dari folder public
-const response = await fetch(`${url}/processedVideos.json`);
-const allVideos: VideoData[] = await response.json();
-// !!! AKHIR PERUBAHAN PENTING !!!
 
 // --- Daftar Kata yang Dikecualikan (Stop Words) ---
 const stopWords = new Set([
