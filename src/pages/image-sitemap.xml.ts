@@ -1,45 +1,67 @@
-// src/pages/image-sitemap.xml.ts
 import type { APIRoute } from 'astro';
 import { slugify } from '../utils/slugify';
-import { getAllVideos } from '../utils/data'; // Pastikan ini mengimpor fungsi yang benar
+import { getAllVideos, type VideoData } from '../utils/data';
 
 export const GET: APIRoute = async ({ site }) => {
   if (!site) {
     return new Response('Site URL is not defined in Astro config.', { status: 500 });
   }
 
-  const allVideos = await getAllVideos();
+  const defaultPublishedDate = import.meta.env.PUBLIC_SITE_PUBLISHED_DATE || new Date().toISOString();
+
+  let allVideos: VideoData[] = [];
+  try {
+    allVideos = await getAllVideos();
+  } catch (error) {
+    console.error("Gagal memuat data video untuk image-sitemap:", error);
+    return new Response('Gagal memuat data video untuk sitemap gambar.', { status: 500 });
+  }
+
   const baseUrl = site.href.endsWith('/') ? site.href.slice(0, -1) : site.href;
 
   let imageEntries: string[] = [];
 
-  // Tambahkan logo situs Anda
+  const logoUrl = `${baseUrl}/logo.png`;
   imageEntries.push(`
     <url>
       <loc>${baseUrl}/</loc>
-      <image:image>
-        <image:loc>${baseUrl}/logo.png</image:loc>
-        <image:caption>Logo ${site.hostname}</image:caption>
-        <image:title>Logo ${site.hostname}</image:title>
+      <lastmod>${defaultPublishedDate}</lastmod> <image:image>
+        <image:loc>${logoUrl}</image:loc>
+        <image:caption>${escapeXml(`Logo ${site.hostname}`)}</image:caption>
+        <image:title>${escapeXml(`Logo ${site.hostname}`)}</image:title>
       </image:image>
     </url>
   `);
 
   allVideos.forEach(video => {
-    const videoDetailUrl = `${baseUrl}/${slugify(video.title)}-${video.id}/`;
-    const thumbnailUrl = video.thumbnail; // URL gambar thumbnail video
+    if (!video.id || !video.title) {
+      console.warn(`Melewatkan video untuk sitemap gambar karena ID atau judul hilang: ${video.id || 'N/A'}`);
+      return;
+    }
 
-    if (thumbnailUrl && videoDetailUrl) {
+    const videoDetailUrl = `${baseUrl}/video/${video.id}/${slugify(video.title)}`;
+    const thumbnailUrl = video.thumbnail;
+
+    const absoluteThumbnailUrl = thumbnailUrl && (thumbnailUrl.startsWith('http://') || thumbnailUrl.startsWith('https://'))
+      ? thumbnailUrl
+      : `${baseUrl}${thumbnailUrl}`;
+
+    if (absoluteThumbnailUrl && videoDetailUrl) {
+      const videoLastMod = video.dateModified || video.datePublished || defaultPublishedDate;
+
       imageEntries.push(`
         <url>
           <loc>${videoDetailUrl}</loc>
+          <lastmod>${videoLastMod}</lastmod>
           <image:image>
-            <image:loc>${thumbnailUrl}</image:loc>
-            <image:caption>${video.description}</image:caption>
-            <image:title>${video.title}</image:title>
+            <image:loc>${absoluteThumbnailUrl}</image:loc>
+            <image:caption>${escapeXml(video.description || video.title)}</image:caption>
+            <image:title>${escapeXml(video.title)}</image:title>
           </image:image>
         </url>
       `);
+    } else {
+      console.warn(`Melewatkan thumbnail video untuk sitemap gambar karena URL tidak valid atau hilang: ID ${video.id}`);
     }
   });
 
@@ -55,3 +77,27 @@ export const GET: APIRoute = async ({ site }) => {
     },
   });
 };
+
+/**
+ * Meng-escape karakter khusus XML dan membersihkan entitas HTML/XML yang tidak lengkap.
+ *
+ * @param unsafe String yang perlu di-escape.
+ * @returns String yang aman untuk XML.
+ */
+function escapeXml(unsafe: string | null | undefined): string {
+  if (!unsafe) return '';
+
+  let cleaned = unsafe;
+
+  cleaned = cleaned.replace(/&(?!#?\w+;)/g, '&amp;');
+
+  return cleaned.replace(/[<>"']/g, function (c) {
+    switch (c) {
+      case '<': return '&lt;';
+      case '>': return '&gt;';
+      case '"': return '&quot;';
+      case "'": return '&apos;';
+      default: return c;
+    }
+  });
+}
